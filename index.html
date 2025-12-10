@@ -1,40 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>AIS Map pseudo-3D</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <meta charset="utf-8"/>
+  <title>Pseudo-3D Map (MapLibre GL JS)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet"/>
   <style>
     html, body { height: 100%; margin: 0; }
-    #map { height: 100vh; width: 100vw; }
-
-    .sky-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 35vh;
-      pointer-events: none;
-      z-index: 500;
-      background: linear-gradient(
-        to bottom,
-        rgba(5, 8, 18, 0.65),
-        rgba(5, 8, 18, 0.0)
-      );
-      /* mix-blend-mode: multiply;  <-- KOMMENTOI POIS jos tummentaa liikaa! */
-    }
+    #map { width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="sky-overlay"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    const leafletMap = L.map("map").setView([60.2, 22.0], 6);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(leafletMap);
-  </script>
+<div id="map"></div>
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+<script>
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://demotiles.maplibre.org/style.json',
+    center: [22.0, 60.2], // [lng, lat]
+    zoom: 6,
+    pitch: 60,     // <- Tämä kallistaa karttaa!
+    bearing: 0
+  });
+
+  // Lisää halutessasi navigointikontrollit
+  map.addControl(new maplibregl.NavigationControl());
+</script>
 </body>
 </html>
