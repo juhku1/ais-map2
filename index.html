@@ -81,6 +81,7 @@
     Data © Fintraffic / Digitraffic (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
     Map © OpenStreetMap contributors.
   </div>
+
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script>
     const DIGITRAFFIC_USER = "JuhaMatti/AISMapLibreDemo";
@@ -324,14 +325,29 @@
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-      center: [22.0, 60.2],
-      zoom: 6,
+
+      // Kamera Viron yllä, kohti pohjoista Itämerta
+      center: [24.0, 59.1],  // [lon, lat]
+      zoom: 6.8,
       pitch: 60,
-      bearing: 20,
+      bearing: 0,            // aina pohjoinen ylös
       attributionControl: false
     });
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+    // Estä kartan kierto → katse pysyy pohjoiseen
+    map.dragRotate.disable();
+    map.touchZoomRotate.disableRotation();
+
+    // Sallitaan liike vain Viron–Suomenlahti -vyöhykkeellä: käytännössä vain itä–länsi
+    const centerLat = 59.1;
+    const latBand   = 1.0;   // 58.1–60.1: Viro + Suomenlahden etelä/etelärannat
+
+    map.setMaxBounds([
+      [centerLat - latBand,  10.0],  // minLat, minLon (Ruotsin rannikkoa kohti)
+      [centerLat + latBand,  32.0]   // maxLat, maxLon (Suomenlahti + Viro + vähän itään)
+    ]);
 
     // --- AIS state ---
     let loading = false;
@@ -382,7 +398,7 @@
         const data = await res.json();
         console.log("AIS features:", data.features ? data.features.length : 0);
 
-        // Lasketaan liikepohjainen nopeus
+        // Liikepohjainen nopeus
         data.features.forEach(feature => {
           const props = feature.properties || {};
           const mmsi = props.mmsi || feature.mmsi;
@@ -440,9 +456,11 @@
 
           const shipType = meta.shipType;
           const color = shipTypeColor(shipType);
+
+          // Bearing on nyt aina 0, mutta säilytetään logiikka jos joskus haluat kartan pyörivän
           const mapBearing = map.getBearing();
-          // *** TÄRKEÄ KOHTA: visualAngle ottaa huomioon kartan bearingin ***
           const visualAngle = ((angle - mapBearing + 360) % 360);
+
           const svgIcon = vesselSvg(speed, visualAngle, color);
           const name = meta.name || props.name || "Unknown vessel";
 
@@ -500,8 +518,13 @@
               .setLngLat([lon, lat])
               .setPopup(popup)
               .addTo(map);
-            // *** Tallennetaan viimeisin kulma, nopeus ja väri markerDataan ***
-            vesselMarkers[mmsi] = { marker, element: el, lastAngle: angle, lastSpeed: speed, color: color };
+            vesselMarkers[mmsi] = {
+              marker,
+              element: el,
+              lastAngle: angle,
+              lastSpeed: speed,
+              color: color
+            };
           } else {
             markerData.element.innerHTML = svgIcon;
             markerData.marker.setLngLat([lon, lat]);
@@ -514,7 +537,7 @@
           }
         });
 
-        // Ensimmäisellä kerralla zoomataan lähemmäs johonkin alukseen (jos löytyy)
+        // Ensimmäisellä kerralla zoomataan johonkin alukseen jos löytyy
         if (firstCenter && anyPosition) {
           map.flyTo({ center: anyPosition, zoom: 8, essential: true });
           firstCenter = false;
@@ -526,31 +549,34 @@
       }
     }
 
-    // --- Laivojen ikonit päivittyvät kartan pyöriessä ---
+    // Jos joskus sallit bearingin muuttua, tällä päivittyvät ikonien kulmat
     function updateAllVesselIcons() {
       const mapBearing = map.getBearing();
       Object.entries(vesselMarkers).forEach(([mmsi, markerData]) => {
-        if (markerData.lastAngle !== undefined && markerData.lastSpeed !== undefined && markerData.color) {
+        if (
+          markerData.lastAngle !== undefined &&
+          markerData.lastSpeed !== undefined &&
+          markerData.color
+        ) {
           const visualAngle = ((markerData.lastAngle - mapBearing + 360) % 360);
-          markerData.element.innerHTML = vesselSvg(markerData.lastSpeed, visualAngle, markerData.color);
+          markerData.element.innerHTML = vesselSvg(
+            markerData.lastSpeed,
+            visualAngle,
+            markerData.color
+          );
         }
       });
     }
 
-    // Käynnistetään kun kartta on ladattu
-    map.on('load', () => {
-      loadMmsiCountry(() => {
-        loadUnlocode(() => {
-          loadAis();
-          setInterval(loadAis, 60 * 1000);
-        });
+    map.on('rotate', updateAllVesselIcons);
+
+    // --- Käynnistys: MMSI + UN/LOCODE + AIS-pollaus ---
+    loadMmsiCountry(() => {
+      loadUnlocode(() => {
+        loadAis();
+        setInterval(loadAis, 60 * 1000);
       });
     });
-
-    // Päivitä ikonit kun karttaa pyöritetään tai kallistetaan
-    map.on('rotate', updateAllVesselIcons);
-    map.on('pitch', updateAllVesselIcons);
-
   </script>
 </body>
 </html>
