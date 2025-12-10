@@ -23,6 +23,8 @@
     .vessel-svg-icon {
       background: none !important;
       border: none !important;
+      will-change: transform;
+      display: inline-block;
     }
     .attribution {
       position: fixed;
@@ -312,12 +314,25 @@
         ? Math.round(speed)
         : "";
       const rot = (typeof angle === "number" && isFinite(angle)) ? angle : 0;
+      // Huom: SVG:ssä ei enää rotationia, koska tehdään se CSS:llä.
       return `
-        <svg width="44" height="44" viewBox="0 0 44 44" style="transform:rotate(${rot}deg)">
+        <svg width="44" height="44" viewBox="0 0 44 44">
           <polygon points="22,4 38,40 22,32 6,40" fill="${color}" stroke="#222" stroke-width="2"/>
           <text x="22" y="26" font-family="Arial" font-size="13" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${rounded}</text>
         </svg>
       `;
+    }
+
+    // Skaalausfunktio (voit myös jättää tämän pois)
+    function getPerspectiveScale() {
+      const pitch = map.getPitch();
+      return 1 - (Math.min(pitch, 60) / 120);
+    }
+
+    // Skew-funktio: kasvaa pitchin mukaan
+    function getPitchSkew() {
+      const pitch = map.getPitch();
+      return Math.min(pitch * 0.4, 24); // säädä kerrointa ja maksimiarvoa fiiliksen mukaan
     }
 
     // --- MapLibre (pseudo-3D) ---
@@ -416,6 +431,9 @@
         // Luo/päivitä markkerit
         let anyPosition = null;
 
+        const scale = getPerspectiveScale();
+        const skew = getPitchSkew();
+
         data.features.forEach(feature => {
           const props = feature.properties || {};
           const mmsi = props.mmsi || feature.mmsi;
@@ -440,10 +458,8 @@
 
           const shipType = meta.shipType;
           const color = shipTypeColor(shipType);
-          const mapBearing = map.getBearing();
-          // *** TÄRKEÄ KOHTA: visualAngle ottaa huomioon kartan bearingin ***
-          const visualAngle = ((angle - mapBearing + 360) % 360);
-          const svgIcon = vesselSvg(speed, visualAngle, color);
+
+          const svgIcon = vesselSvg(speed, angle, color);
           const name = meta.name || props.name || "Unknown vessel";
 
           let popupHtml = "";
@@ -495,16 +511,17 @@
             const el = document.createElement('div');
             el.className = "vessel-svg-icon";
             el.innerHTML = svgIcon;
+            el.style.transform = `scale(${scale}) skewY(${skew}deg) rotate(${angle}deg)`;
             const popup = new maplibregl.Popup({ offset: 20 }).setHTML(popupHtml);
             const marker = new maplibregl.Marker({ element: el })
               .setLngLat([lon, lat])
               .setPopup(popup)
               .addTo(map);
-            // *** Tallennetaan viimeisin kulma, nopeus ja väri markerDataan ***
             vesselMarkers[mmsi] = { marker, element: el, lastAngle: angle, lastSpeed: speed, color: color };
           } else {
             markerData.element.innerHTML = svgIcon;
             markerData.marker.setLngLat([lon, lat]);
+            markerData.element.style.transform = `scale(${scale}) skewY(${skew}deg) rotate(${angle}deg)`;
             if (markerData.marker.getPopup()) {
               markerData.marker.getPopup().setHTML(popupHtml);
             }
@@ -526,13 +543,14 @@
       }
     }
 
-    // --- Laivojen ikonit päivittyvät kartan pyöriessä ---
+    // --- Laivojen ikonit päivittyvät kartan pyöriessä ja kallistuessa ---
     function updateAllVesselIcons() {
-      const mapBearing = map.getBearing();
+      const scale = getPerspectiveScale();
+      const skew = getPitchSkew();
       Object.entries(vesselMarkers).forEach(([mmsi, markerData]) => {
         if (markerData.lastAngle !== undefined && markerData.lastSpeed !== undefined && markerData.color) {
-          const visualAngle = ((markerData.lastAngle - mapBearing + 360) % 360);
-          markerData.element.innerHTML = vesselSvg(markerData.lastSpeed, visualAngle, markerData.color);
+          markerData.element.innerHTML = vesselSvg(markerData.lastSpeed, markerData.lastAngle, markerData.color);
+          markerData.element.style.transform = `scale(${scale}) skewY(${skew}deg) rotate(${markerData.lastAngle}deg)`;
         }
       });
     }
@@ -547,9 +565,10 @@
       });
     });
 
-    // Päivitä ikonit kun karttaa pyöritetään tai kallistetaan
+    // Päivitä ikonit kun karttaa pyöritetään, kallistetaan tai zoomataan
     map.on('rotate', updateAllVesselIcons);
     map.on('pitch', updateAllVesselIcons);
+    map.on('zoom', updateAllVesselIcons);
 
   </script>
 </body>
