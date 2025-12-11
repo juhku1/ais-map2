@@ -97,7 +97,8 @@ function registerVesselForStats(countryName, typeName, destinationLabel) {
 
 const filterState = {
   countries: new Set(),
-  types: new Set()
+  types: new Set(),
+  destinations: new Set()
 };
 
 let activeTab = 'flags';
@@ -105,10 +106,13 @@ let activeTab = 'flags';
 function vesselPassesFilter(markerData) {
   const cSet = filterState.countries;
   const tSet = filterState.types;
+  const dSet = filterState.destinations;
   const cKey = markerData.countryKey || "Unknown";
   const tKey = markerData.typeKey || "Unknown";
+  const dKey = markerData.destinationKey || "";
   if (cSet.size > 0 && !cSet.has(cKey)) return false;
   if (tSet.size > 0 && !tSet.has(tKey)) return false;
+  if (dSet.size > 0 && !dSet.has(dKey)) return false;
   return true;
 }
 
@@ -147,6 +151,15 @@ function wireStatsFilterHandlers() {
       if (!key) return;
       if (e.target.checked) filterState.types.add(key);
       else filterState.types.delete(key);
+      applyFilters();
+    });
+  });
+  document.querySelectorAll(".dest-filter").forEach(cb => {
+    cb.addEventListener("change", e => {
+      const key = e.target.getAttribute("data-key");
+      if (!key) return;
+      if (e.target.checked) filterState.destinations.add(key);
+      else filterState.destinations.delete(key);
       applyFilters();
     });
   });
@@ -216,7 +229,11 @@ function updateStatsPanel() {
     html += `<div class="stats-scrollable">`;
     if (destinationEntries.length) {
       destinationEntries.forEach(([d, n]) => {
-        html += `<div class="stats-dest-item">${d} <span class="stats-count">(${n})</span></div>`;
+        const checked = filterState.destinations.has(d) ? "checked" : "";
+        html += `<label class="stats-filter-label">
+                   <input type="checkbox" class="dest-filter" data-key="${d}" ${checked}>
+                   ${d} <span class="stats-count">(${n})</span>
+                 </label>`;
       });
     } else {
       html += `<div class="stats-empty">No destination data available</div>`;

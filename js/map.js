@@ -182,7 +182,8 @@ async function loadAis() {
           lastSpeed: speed,
           color: color,
           countryKey: cKey,
-          typeKey: tKey
+          typeKey: tKey,
+          destinationKey: destLabel || ""
         };
       } else {
         markerData.element.innerHTML = svgIcon;
@@ -195,6 +196,7 @@ async function loadAis() {
         markerData.color = color;
         markerData.countryKey = cKey;
         markerData.typeKey = tKey;
+        markerData.destinationKey = destLabel || "";
       }
     });
 
