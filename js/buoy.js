@@ -6,6 +6,15 @@
 const FMI_BASE_URL = 'https://opendata.fmi.fi/wfs';
 const BUOY_UPDATE_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
+// Known FMI wave buoy stations (coordinates to names)
+const KNOWN_BUOYS = {
+    '60.12333_24.97283': 'Helsinki Suomenlinna',
+    '59.24817_20.99833': 'Pohjois-Itämeri',
+    '59.96500_25.23500': 'Suomenlahti',
+    '61.80010_20.23267': 'Selkämeri',
+    '59.75720_23.22000': 'Hanko Längden'
+};
+
 let buoyData = [];
 const buoyMarkers = {}; // Changed to object keyed by buoy name, like vessels
 let buoyUpdateTimer = null;
@@ -17,13 +26,14 @@ let buoyUpdateTimer = null;
 async function fetchBuoyData() {
     try {
         const now = new Date();
-        const startTime = new Date(now - 3 * 60 * 60 * 1000); // 3 hours ago
+        const startTime = new Date(now - 60 * 60 * 1000); // 1 hour ago
         
+        // Use simple observation format instead of multipointcoverage
         const params = new URLSearchParams({
             service: 'WFS',
             version: '2.0.0',
             request: 'GetFeature',
-            storedquery_id: 'fmi::observations::wave::multipointcoverage',
+            storedquery_id: 'fmi::observations::wave::simple',
             starttime: startTime.toISOString(),
             endtime: now.toISOString()
         });
@@ -32,61 +42,65 @@ async function fetchBuoyData() {
         if (!response.ok) throw new Error('FMI API request failed');
         
         const xmlText = await response.text();
-        return parseBuoyXML(xmlText);
+        return parseBuoyXMLSimple(xmlText);
     } catch (error) {
-        console.error('Failed to fetch buoy data:', error);
-        return [];
-    }
-}
-
-function parseBuoyXML(xmlText) {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-    
-    const positions = xmlDoc.getElementsByTagNameNS('http://www.opengis.net/gml/3.2', 'pos');
-    const names = xmlDoc.getElementsByTagNameNS('http://www.opengis.net/gml/3.2', 'name');
-    const dataBlocks = xmlDoc.getElementsByTagNameNS('http://www.opengis.net/gml/3.2', 'doubleOrNilReasonTupleList');
-    
+        console.error('Failed to fetch buoy damember is a separate observation
+    const members = xmlDoc.getElementsByTagName('wfs:member');
     const buoyLatestData = {};
     
-    for (let i = 0; i < positions.length; i++) {
-        const posText = positions[i].textContent.trim();
+    for (let i = 0; i < members.length; i++) {
+        const member = members[i];
+        
+        // Get position
+        const posElem = member.getElementsByTagName('gml:pos')[0];
+        if (!posElem) continue;
+        const posText = posElem.textContent.trim();
         const [lat, lon] = posText.split(' ').map(Number);
-        const name = names[i]?.textContent.trim() || 'Unknown Buoy';
         
-        // Skip if we already have data for this buoy
-        if (buoyLatestData[name]) continue;
+        // Create coordinate key for lookup
+        const coordKey = `${lat.toFixed(5)}_${lon.toFixed(5)}`;
+        const name = KNOWN_BUOYS[coordKey] || `Buoy ${lat.toFixed(2)}°N ${lon.toFixed(2)}°E`;
         
-        if (dataBlocks[i]) {
-            const rows = dataBlocks[i].textContent.trim().split('\n');
-            // Find the most recent non-null data (iterate from end)
-            for (let j = rows.length - 1; j >= 0; j--) {
-                const row = rows[j].trim();
-                if (!row) continue;
-                
-                const values = row.split(/\s+/).map(v => v === 'NaN' ? null : parseFloat(v));
-                
-                // Skip if all values are null
-                if (values.every(v => v === null)) continue;
-                
-                // FMI wave observation parameters:
-                // [WaveHs, ModalWDi, WTP, TWATER, WHDD]
-                const observations = {
-                    WaveHs: values[0],      // Significant wave height (m)
-                    ModalWDi: values[1],    // Modal wave direction (degrees)
-                    WTP: values[2],         // Wave period (s)
-                    TWATER: values[3],      // Water temperature (°C)
-                    WHDD: values[4]         // Wave direction deviation
-                };
-                
-                buoyLatestData[name] = {
-                    name,
-                    lat,
-                    lon,
-                    observations
-                };
-                break; // Found valid data, move to next buoy
+        // Get parameter name and value
+        const paramElem = member.getElementsByTagName('BsWfs:ParameterName')[0];
+        const valueElem = member.getElementsByTagName('BsWfs:ParameterValue')[0];
+        
+        if (!paramElem || !valueElem) continue;
+        
+        const paramName = paramElem.textContent.trim();
+        const valueText = valueElem.textContent.trim();
+        const value = valueText === 'NaN' ? null : parseFloat(valueText);
+        
+        // Initialize buoy data if not exists
+        if (!buoyLatestData[name]) {
+            buoyLatestData[name] = {
+                name,
+                lat,
+                lon,
+                observations: {
+                    WaveHs: null,
+                    ModalWDi: null,
+                    WTP: null,
+                    TWATER: null,
+                    WHDD: null
+                }
+            };
+        }
+        
+        // Store observation value (keep latest non-null value)
+        if (buoyLatestData[name].observations.hasOwnProperty(paramName)) {
+            if (value !== null || buoyLatestData[name].observations[paramName] === null) {
+                buoyLatestData[name].observations[paramName] = value;
             }
+        }
+    }
+    
+    const result = Object.values(buoyLatestData);
+    console.log(`Parsed ${result.length} buoys:`, result.map(b => `${b.name} (${Object.values(b.observations).filter(v => v !== null).length} params)`
+        
+        // Store observation value
+        if (buoyLatestData[name].observations.hasOwnProperty(paramName)) {
+            buoyLatestData[name].observations[paramName] = value;
         }
     }
     
