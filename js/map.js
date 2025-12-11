@@ -33,7 +33,7 @@ if (map.touchZoomRotate && map.touchZoomRotate.disableRotation) {
 
 let loading = false;
 const vesselState = {};
-const vesselMarkers = {};
+export const vesselMarkers = {};
 const buoyMarkers = {};
 let firstCenter = true;
 

@@ -3,6 +3,8 @@
  * Handles vessel rendering, statistics, and filtering
  */
 
+import { vesselMarkers } from './map.js';
+
 // ============================================================================
 // Ship Type Classification
 // ============================================================================
