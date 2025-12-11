@@ -126,13 +126,23 @@ export function getBuoyData() {
 export function formatBuoyPopup(buoy) {
     const obs = buoy.observations;
     
+    const buoyIcon = `<svg width="40" height="50" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+      <line x1="16" y1="8" x2="16" y2="1" stroke="#33" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="16" cy="0.5" r="1.5" fill="#ff6b00"/>
+      <ellipse cx="16" cy="16" rx="12" ry="6" fill="#ffcc00" stroke="#cc9900" stroke-width="1.5"/>
+      <ellipse cx="16" cy="15" rx="12" ry="5" fill="#ffe666"/>
+      <ellipse cx="16" cy="14" rx="8" ry="3" fill="#fff" opacity="0.3"/>
+    </svg>`;
+    
     let html = `<div class="buoy-popup">
         <div class="popup-header">
-            <strong>🌊 ${buoy.name}</strong>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                ${buoyIcon}
+                <strong>${buoy.name}</strong>
+            </div>
         </div>
         <div class="popup-section">
             <div class="popup-row">
-                <span class="label">Coordinates:</span>
                 <span class="value">${buoy.lat.toFixed(4)}°N, ${buoy.lon.toFixed(4)}°E</span>
             </div>`;
     
