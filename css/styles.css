@@ -173,18 +173,20 @@ html, body {
 
 .stats-panel {
   position: fixed;
-  right: 8px;
-  bottom: 8px;
+  right: 0;
+  bottom: 80px;
   z-index: 2001;
   background: rgba(5, 8, 18, 0.96);
   color: #eee;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 6px 0 0 6px;
   font-size: 11px;
-  max-width: 340px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  width: 340px;
+  box-shadow: -2px 2px 10px rgba(0,0,0,0.4);
   border: 1px solid rgba(0, 234, 255, 0.2);
-  transition: opacity 0.2s;
+  border-right: none;
+  transition: transform 0.3s ease, opacity 0.2s;
+  transform: translateX(0);
 }
 
 .stats-header {
@@ -248,8 +250,12 @@ html, body {
 }
 
 .stats-panel-collapsed {
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  transform: translateX(calc(100% - 180px));
+  opacity: 0.85;
+}
+
+.stats-panel-collapsed:hover {
+  opacity: 1;
 }
 
 .stats-panel-collapsed #stats-panel-arrow {
