@@ -99935,41 +99935,94 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Russia-Finland maritime border (Gulf of Finland)",
-        "border_type": "eez",
-        "source": "Approximated EEZ boundary",
-        "left": "Russia",
-        "right": "Finland"
+        "name": "Russia-Finland territorial waters boundary",
+        "border_type": "territorial",
+        "source": "International maritime boundary",
+        "left": "Finland",
+        "right": "Russia",
+        "note": "12 NM territorial waters boundary in Gulf of Finland"
       },
       "geometry": {
         "type": "LineString",
         "coordinates": [
           [
+            23.5,
+            59.95
+          ],
+          [
+            24.0,
+            59.92
+          ],
+          [
+            24.5,
+            59.9
+          ],
+          [
+            25.0,
+            59.88
+          ],
+          [
+            25.5,
+            59.87
+          ],
+          [
+            26.0,
+            59.86
+          ],
+          [
+            26.5,
+            59.86
+          ],
+          [
+            27.0,
+            59.87
+          ],
+          [
+            27.3,
+            59.9
+          ],
+          [
             27.5,
-            60.15
+            59.93
           ],
           [
             27.7,
-            60.08
+            59.96
           ],
           [
             27.9,
-            60.05
-          ],
-          [
-            28.1,
-            60.02
-          ],
-          [
-            28.3,
-            60.0
-          ],
-          [
-            28.5,
             59.98
           ],
           [
+            28.1,
+            60.0
+          ],
+          [
+            28.3,
+            60.01
+          ],
+          [
+            28.5,
+            60.02
+          ],
+          [
             28.7,
+            60.02
+          ],
+          [
+            28.9,
+            60.01
+          ],
+          [
+            29.1,
+            60.0
+          ],
+          [
+            29.3,
+            59.98
+          ],
+          [
+            29.5,
             59.96
           ]
         ]
