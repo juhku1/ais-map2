@@ -51,50 +51,92 @@ map.on('load', () => {
 
 async function fetchTerritorialWaters() {
   try {
-    // Marine Regions EEZ boundaries - includes all Baltic Sea countries
-    // This GeoJSON contains Exclusive Economic Zones for Finland, Estonia, Sweden, Russia, etc.
-    // Filtered to Baltic Sea region (bounds approximately match our map)
-    const eezUrl = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_boundary_lines_maritime_indicator.geojson';
+    // OpenStreetMap Overpass API - maritime boundaries for Baltic Sea
+    // Uses boundary=maritime + border_type=territorial tags
+    // License: ODbL (Open Database License) - requires attribution and share-alike
+    // More accurate and up-to-date than Natural Earth
     
-    const response = await fetch(eezUrl);
+    // Overpass query for territorial waters in Baltic Sea region
+    const bbox = '57.0,17.0,67.0,31.0'; // south,west,north,east
+    const overpassQuery = `
+      [out:json][timeout:25];
+      (
+        way["boundary"="maritime"]["border_type"="territorial"](${bbox});
+        relation["boundary"="maritime"]["border_type"="territorial"](${bbox});
+      );
+      out geom;
+    `;
+    
+    const overpassUrl = 'https://overpass-api.de/api/interpreter';
+    const response = await fetch(overpassUrl, {
+      method: 'POST',
+      body: overpassQuery
+    });
+    
     if (!response.ok) {
-      console.warn('Failed to fetch maritime boundaries from Natural Earth');
+      console.warn('Failed to fetch maritime boundaries from OpenStreetMap');
       return;
     }
     
-    const allData = await response.json();
+    const osmData = await response.json();
     
-    // Filter to only Baltic Sea region (our map bounds: 18-30.3°E, 58.5-66°N)
-    const balticBounds = {
-      west: 17,
-      east: 31,
-      south: 57,
-      north: 67
-    };
-    
-    const balticFeatures = allData.features.filter(feature => {
-      if (!feature.geometry || !feature.geometry.coordinates) return false;
-      
-      // Check if any coordinate is within Baltic Sea bounds
-      const coords = feature.geometry.coordinates;
-      const checkCoords = (coordArray) => {
-        if (typeof coordArray[0] === 'number') {
-          const [lon, lat] = coordArray;
-          return lon >= balticBounds.west && lon <= balticBounds.east &&
-                 lat >= balticBounds.south && lat <= balticBounds.north;
+    // Convert OSM data to GeoJSON
+    const features = osmData.elements
+      .filter(el => el.geometry || el.members)
+      .map(element => {
+        let coordinates;
+        
+        if (element.type === 'way' && element.geometry) {
+          // Simple way - convert nodes to coordinate array
+          coordinates = element.geometry.map(node => [node.lon, node.lat]);
+          
+          return {
+            type: 'Feature',
+            properties: {
+              name: element.tags?.name || 'Maritime boundary',
+              border_type: element.tags?.border_type,
+              admin_level: element.tags?.admin_level
+            },
+            geometry: {
+              type: 'LineString',
+              coordinates: coordinates
+            }
+          };
+        } else if (element.type === 'relation' && element.members) {
+          // Relation - collect all way geometries
+          const allCoords = [];
+          for (const member of element.members) {
+            if (member.geometry) {
+              allCoords.push(member.geometry.map(node => [node.lon, node.lat]));
+            }
+          }
+          
+          if (allCoords.length > 0) {
+            return {
+              type: 'Feature',
+              properties: {
+                name: element.tags?.name || 'Maritime boundary',
+                border_type: element.tags?.border_type,
+                admin_level: element.tags?.admin_level
+              },
+              geometry: {
+                type: 'MultiLineString',
+                coordinates: allCoords
+              }
+            };
+          }
         }
-        return coordArray.some(c => checkCoords(c));
-      };
-      
-      return checkCoords(coords);
-    });
+        
+        return null;
+      })
+      .filter(f => f !== null);
     
     const geojson = {
       type: 'FeatureCollection',
-      features: balticFeatures
+      features: features
     };
     
-    console.log('Maritime boundaries received:', geojson.features?.length, 'features in Baltic region');
+    console.log('OSM maritime boundaries received:', geojson.features?.length, 'features in Baltic region');
     
     // Update source with fetched data
     if (map.getSource('territorial-waters')) {
