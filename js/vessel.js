@@ -404,10 +404,10 @@ async function loadAis(map) {
       // Header: Name and status
       popupHtml += `<div class="popup-header">`;
       popupHtml += `<div class="popup-title">${name}</div>`;
+      popupHtml += `<div class="popup-subtitle" style="margin-top:6px">${typeName} · ${regCountry} ${regFlag}</div>`;
       if (navStatText) {
         popupHtml += `<div style="margin-top:4px"><span class="status-dot" style="background:${navStatColor}"></span> ${navStatText}</div>`;
       }
-      popupHtml += `<div class="popup-subtitle" style="margin-top:6px">${typeName} · ${regCountry} ${regFlag}</div>`;
       popupHtml += `</div>`;
       
       // Main info section
