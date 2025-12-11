@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 AIS Data Collector for Baltic Sea Region
-Fetches vessel data from Digitraffic API and stores it in SQLite database
+Fetches vessel data from Digitraffic API and stores it in Supabase database
 """
 
 import json
 import requests
 from datetime import datetime, timezone
-import sqlite3
+import os
 from pathlib import Path
 
 # Baltic Sea bounding box (same as map bounds)
@@ -18,62 +18,23 @@ BBOX = {
     'max_lat': 66.0
 }
 
-DB_PATH = Path('data/ais/ais_history.db')
+# Supabase configuration
+SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://baeebralrmgccruigyle.supabase.co')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
-def init_database():
-    """Initialize SQLite database with schema"""
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Create vessels table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS vessel_positions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            mmsi INTEGER NOT NULL,
-            name TEXT,
-            longitude REAL NOT NULL,
-            latitude REAL NOT NULL,
-            sog REAL,
-            cog REAL,
-            heading INTEGER,
-            nav_stat INTEGER,
-            ship_type INTEGER,
-            destination TEXT,
-            eta TEXT,
-            draught REAL,
-            pos_acc BOOLEAN,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # Create indexes for fast queries
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_mmsi ON vessel_positions(mmsi)
-    ''')
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_timestamp ON vessel_positions(timestamp)
-    ''')
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_mmsi_timestamp ON vessel_positions(mmsi, timestamp)
-    ''')
-    
-    # Create summary table for statistics
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS collection_summary (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            vessel_count INTEGER NOT NULL,
-            collection_time_ms INTEGER
-        )
-    ''')
-    
-    conn.commit()
-    conn.close()
-    
-    print(f"Database initialized: {DB_PATH}")
+def get_supabase_client():
+    """Initialize Supabase client"""
+    try:
+        from supabase import create_client, Client
+        if not SUPABASE_KEY:
+            raise ValueError("SUPABASE_KEY environment variable not set")
+        return create_client(SUPABASE_URL, SUPABASE_KEY)
+    except ImportError:
+        print("Warning: supabase-py not installed. Install with: pip install supabase")
+        return None
+    except Exception as e:
+        print(f"Error initializing Supabase client: {e}")
+        return None
 
 def fetch_ais_data():
     """Fetch current AIS data from Digitraffic API"""
@@ -133,53 +94,62 @@ def filter_vessels(data):
     return filtered
 
 def save_to_database(vessels, vessel_metadata, timestamp, collection_time_ms):
-    """Save vessel data to SQLite database"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    """Save vessel data to Supabase database"""
+    supabase = get_supabase_client()
+    if not supabase:
+        print("Skipping database save - Supabase not available")
+        return
     
     timestamp_str = timestamp.isoformat()
     
-    # Insert vessel positions
-    for feature in vessels:
-        props = feature['properties']
-        coords = feature['geometry']['coordinates']
-        mmsi = props.get('mmsi')
+    try:
+        # Prepare vessel data for batch insert
+        vessel_data = []
+        for feature in vessels:
+            props = feature['properties']
+            coords = feature['geometry']['coordinates']
+            mmsi = props.get('mmsi')
+            
+            # Get metadata if available
+            meta = vessel_metadata.get(mmsi, {})
+            
+            vessel_data.append({
+                'timestamp': timestamp_str,
+                'mmsi': mmsi,
+                'name': meta.get('name'),
+                'longitude': coords[0],
+                'latitude': coords[1],
+                'sog': props.get('sog'),
+                'cog': props.get('cog'),
+                'heading': props.get('heading'),
+                'nav_stat': props.get('navStat'),
+                'ship_type': meta.get('ship_type'),
+                'destination': meta.get('destination'),
+                'eta': meta.get('eta'),
+                'draught': meta.get('draught'),
+                'pos_acc': props.get('posAcc')
+            })
         
-        # Get metadata if available
-        meta = vessel_metadata.get(mmsi, {})
+        # Batch insert vessels (Supabase has 1000 row limit per request)
+        batch_size = 1000
+        for i in range(0, len(vessel_data), batch_size):
+            batch = vessel_data[i:i + batch_size]
+            result = supabase.table('vessel_positions').insert(batch).execute()
+            print(f"Inserted batch {i//batch_size + 1}: {len(batch)} vessels")
         
-        cursor.execute('''
-            INSERT INTO vessel_positions 
-            (timestamp, mmsi, name, longitude, latitude, sog, cog, heading, 
-             nav_stat, ship_type, destination, eta, draught, pos_acc)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            timestamp_str,
-            mmsi,
-            meta.get('name'),
-            coords[0],  # longitude
-            coords[1],  # latitude
-            props.get('sog'),
-            props.get('cog'),
-            props.get('heading'),
-            props.get('navStat'),
-            meta.get('ship_type'),
-            meta.get('destination'),
-            meta.get('eta'),
-            meta.get('draught'),
-            props.get('posAcc')
-        ))
-    
-    # Insert summary
-    cursor.execute('''
-        INSERT INTO collection_summary (timestamp, vessel_count, collection_time_ms)
-        VALUES (?, ?, ?)
-    ''', (timestamp_str, len(vessels), collection_time_ms))
-    
-    conn.commit()
-    conn.close()
-    
-    print(f"Saved {len(vessels)} vessels to database")
+        # Insert collection summary
+        summary = {
+            'timestamp': timestamp_str,
+            'vessel_count': len(vessels),
+            'collection_time_ms': collection_time_ms
+        }
+        supabase.table('collection_summary').insert(summary).execute()
+        
+        print(f"✓ Saved {len(vessels)} vessels to Supabase")
+        
+    except Exception as e:
+        print(f"Error saving to Supabase: {e}")
+        raise
 
 def export_latest_json(vessels, vessel_metadata, timestamp):
     """Export latest data as JSON for web access"""
@@ -226,9 +196,6 @@ def main():
     timestamp = start_time
     print(f"Collection time: {timestamp.isoformat()}")
     
-    # Initialize database
-    init_database()
-    
     # Fetch data
     print("Fetching AIS data from Digitraffic...")
     data = fetch_ais_data()
@@ -252,7 +219,7 @@ def main():
     collection_time = datetime.now(timezone.utc) - start_time
     collection_time_ms = int(collection_time.total_seconds() * 1000)
     
-    # Save to database
+    # Save to Supabase
     save_to_database(vessels, vessel_metadata, timestamp, collection_time_ms)
     
     # Export latest JSON

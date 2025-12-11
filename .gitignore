@@ -1,3 +1,9 @@
-# Ignore large data files from git (optional - uncomment if repo grows too large)
-# data/ais/**/*.json
-# !data/ais/latest.json
+# Ignore SQLite database files
+data/ais/**/*.db
+data/ais/**/*.db-journal
+data/ais/**/*.db-shm
+data/ais/**/*.db-wal
+
+# Keep latest.json for web access
+!data/ais/latest.json
+!data/ais/README.md

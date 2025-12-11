@@ -1,16 +1,25 @@
 # AIS Data Collection
 
-This directory contains historical AIS (Automatic Identification System) data collected from the Baltic Sea region.
+This directory contains the latest AIS (Automatic Identification System) data snapshot from the Baltic Sea region.
 
-## Data Structure
+Historical data is stored in **Supabase PostgreSQL database**.
+
+## Data Files
 
 ```
 data/ais/
-├── ais_history.db      # SQLite database with all historical data
-└── latest.json         # Most recent collection (for web access)
+└── latest.json         # Most recent collection snapshot (for web access)
 ```
 
-## Database Schema
+## Database
+
+All historical vessel position data is stored in Supabase:
+
+- **Database**: PostgreSQL (Supabase)
+- **Tables**: `vessel_positions`, `collection_summary`
+- **Access**: REST API via Supabase client
+
+### Schema
 
 **vessel_positions** table:
 - `mmsi`: Maritime Mobile Service Identity (vessel ID)
@@ -23,34 +32,34 @@ data/ais/
 - `ship_type`: AIS ship type code
 - `destination`: Reported destination
 - `eta`: Estimated time of arrival
-- `draught`: Vessel draught (meters)
 - `timestamp`: Collection timestamp
-
-**collection_summary** table:
-- Summary statistics for each collection run
 
 ## Example Queries
 
-```sql
--- Get vessel track for specific MMSI
-SELECT timestamp, longitude, latitude, sog 
-FROM vessel_positions 
-WHERE mmsi = 230982000 
-ORDER BY timestamp;
+Using Supabase JavaScript client:
 
--- Count vessels by ship type
-SELECT ship_type, COUNT(*) 
-FROM vessel_positions 
-WHERE timestamp > datetime('now', '-1 hour')
-GROUP BY ship_type;
+```javascript
+import { createClient } from '@supabase/supabase-js'
 
--- Find vessels near specific location
-SELECT mmsi, name, sog
-FROM vessel_positions
-WHERE longitude BETWEEN 24.0 AND 25.0
-  AND latitude BETWEEN 59.8 AND 60.2
-  AND timestamp = (SELECT MAX(timestamp) FROM vessel_positions)
-LIMIT 10;
+const supabase = createClient(
+  'https://baeebralrmgccruigyle.supabase.co',
+  'YOUR_ANON_KEY'
+)
+
+// Get latest positions
+const { data } = await supabase
+  .from('vessel_positions')
+  .select('*')
+  .order('timestamp', { ascending: false })
+  .limit(100)
+
+// Get vessel track
+const { data } = await supabase
+  .from('vessel_positions')
+  .select('timestamp, longitude, latitude, sog')
+  .eq('mmsi', 230982000)
+  .order('timestamp', { ascending: false })
+  .limit(100)
 ```
 
 ## Collection
@@ -61,8 +70,9 @@ Source: [Digitraffic Marine API](https://meri.digitraffic.fi)
 
 Region: Baltic Sea (17-30.3°E, 58.5-66°N)
 
-## Database Size
+## Storage
 
-- ~2.4 MB per collection (9735 vessels)
-- ~350 MB per day (144 collections)
-- Indexes for fast queries by MMSI and timestamp
+- Supabase Free Tier: 500 MB database
+- ~2.4 MB per collection
+- ~200 collections before limit
+- Old data can be archived/cleaned as needed
