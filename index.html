@@ -134,6 +134,17 @@
       margin-top: 2px;
       padding-left: 2px;
     }
+    .stats-toggle {
+      margin-left: 6px;
+      cursor: pointer;
+      color: #00eaff;
+      text-decoration: underline;
+      font-size: 10px;
+      opacity: 0.85;
+    }
+    .stats-toggle:hover {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -476,12 +487,19 @@
       `;
     }
 
-    // --- Tilastot (rekisteröintimaat, kohdesatamat, laivatyypit) ---
+    // --- Tilastot ---
     const stats = {
       total: 0,
       byCountry: {},
       byType: {},
       byDestination: {}
+    };
+
+    // Näkymän tila: top 5 vai all
+    const statsView = {
+      showAllFlags: false,
+      showAllTypes: false,
+      showAllDest: false
     };
 
     function resetStats() {
@@ -518,44 +536,71 @@
         return;
       }
 
-      const countryEntries = Object.entries(stats.byCountry)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
+      const countrySorted = Object.entries(stats.byCountry)
+        .sort((a, b) => b[1] - a[1]);
+      const typeSorted = Object.entries(stats.byType)
+        .sort((a, b) => b[1] - a[1]);
+      const destSorted = Object.entries(stats.byDestination)
+        .sort((a, b) => b[1] - a[1]);
 
-      const typeEntries = Object.entries(stats.byType)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
+      const countryEntries = statsView.showAllFlags
+        ? countrySorted
+        : countrySorted.slice(0, 5);
 
-      const destinationEntries = Object.entries(stats.byDestination)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
+      const typeEntries = statsView.showAllTypes
+        ? typeSorted
+        : typeSorted.slice(0, 5);
+
+      const destinationEntries = statsView.showAllDest
+        ? destSorted
+        : destSorted.slice(0, 5);
 
       let html = "";
       html += `<div class="stats-row"><strong>Vessels on map:</strong> ${stats.total}</div>`;
 
-      if (countryEntries.length) {
+      if (countrySorted.length) {
+        const toggleLabel = statsView.showAllFlags ? "show top 5" : "show all";
+        html += `<div class="stats-row"><strong>By flag:</strong><span class="stats-toggle" data-kind="flag">${toggleLabel}</span></div>`;
         const countryText = countryEntries
           .map(([c, n]) => `${c} (${n})`)
-          .join(", ");
-        html += `<div class="stats-row"><strong>By flag:</strong> ${countryText}</div>`;
+          .join("<br>");
+        html += `<div class="stats-small">${countryText}</div>`;
       }
 
-      if (typeEntries.length) {
+      if (typeSorted.length) {
+        const toggleLabel = statsView.showAllTypes ? "show top 5" : "show all";
+        html += `<div class="stats-row"><strong>By ship type:</strong><span class="stats-toggle" data-kind="type">${toggleLabel}</span></div>`;
         const typeText = typeEntries
           .map(([t, n]) => `${t} (${n})`)
-          .join(", ");
-        html += `<div class="stats-row"><strong>By ship type:</strong> ${typeText}</div>`;
+          .join("<br>");
+        html += `<div class="stats-small">${typeText}</div>`;
       }
 
-      if (destinationEntries.length) {
+      if (destSorted.length) {
+        const toggleLabel = statsView.showAllDest ? "show top 5" : "show all";
+        html += `<div class="stats-row"><strong>Top destinations:</strong><span class="stats-toggle" data-kind="dest">${toggleLabel}</span></div>`;
         const destText = destinationEntries
           .map(([d, n]) => `${d} (${n})`)
           .join("<br>");
-        html += `<div class="stats-row"><strong>Top destinations:</strong></div>`;
         html += `<div class="stats-small">${destText}</div>`;
       }
 
       el.innerHTML = html;
+
+      // Kytketään toggle-linkit joka päivityksen jälkeen
+      document.querySelectorAll("#stats-panel .stats-toggle").forEach(t => {
+        t.addEventListener("click", () => {
+          const kind = t.getAttribute("data-kind");
+          if (kind === "flag") {
+            statsView.showAllFlags = !statsView.showAllFlags;
+          } else if (kind === "type") {
+            statsView.showAllTypes = !statsView.showAllTypes;
+          } else if (kind === "dest") {
+            statsView.showAllDest = !statsView.showAllDest;
+          }
+          updateStatsPanel();
+        });
+      });
     }
 
     // --- MapLibre (pseudo-3D, mutta aina pohjoinen ylös) ---
