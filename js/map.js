@@ -160,8 +160,8 @@ async function loadAis() {
       }
       popupHtml += `</div>`;
       
-      popupHtml += `<button class="popup-track-btn" onclick="toggleVesselTrack(${mmsi}, '${color}'); event.stopPropagation();">`;
-      popupHtml += `<span class="track-icon">━━━</span> Show 24h Track`;
+      popupHtml += `<button class="popup-track-btn" onclick="toggle24hAgoMarker(${mmsi}, [${lon}, ${lat}], '${color}'); event.stopPropagation();">`;
+      popupHtml += `<span class="track-icon">⟲</span> Show 24h Ago`;
       popupHtml += `</button>`;
       popupHtml += `</div>`;
 
