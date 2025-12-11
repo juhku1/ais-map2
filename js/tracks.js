@@ -4,6 +4,9 @@
  */
 
 const active24hMarkers = new Map(); // mmsi -> { marker, element }
+let savedViewState = null;
+let restoreClickHandler = null;
+let restoreKeyHandler = null;
 
 async function fetch24hAgoPosition(mmsi) {
   try {
@@ -61,6 +64,25 @@ function show24hAgoMarker(mmsi, currentPosition, color = '#00eaff') {
     
     console.log(`[24H] 24h ago position: [${oldLon}, ${oldLat}] at ${oldTime}`);
 
+    // Save current view state
+    savedViewState = {
+      center: mapInstance.getCenter(),
+      zoom: mapInstance.getZoom(),
+      bearing: mapInstance.getBearing(),
+      pitch: mapInstance.getPitch()
+    };
+
+    // Dim other vessels
+    Object.values(vesselMarkers).forEach(marker => {
+      if (marker.element && marker.marker.getLngLat) {
+        const markerLngLat = marker.marker.getLngLat();
+        if (markerLngLat[0] !== currentPosition[0] || markerLngLat[1] !== currentPosition[1]) {
+          marker.element.style.opacity = '0.2';
+          marker.element.style.transition = 'opacity 0.3s';
+        }
+      }
+    });
+
     // Create marker element
     const el = document.createElement('div');
     el.className = 'historical-marker';
@@ -89,46 +111,58 @@ function show24hAgoMarker(mmsi, currentPosition, color = '#00eaff') {
       `))
       .addTo(mapInstance);
 
-    // Draw line from old position to current
-    if (currentPosition) {
-      const lineId = `track-line-${mmsi}`;
-      const sourceId = `track-source-${mmsi}`;
-      
-      mapInstance.addSource(sourceId, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [oldCoords, currentPosition]
-          }
+    // Draw pulsating line from old position to current
+    const lineId = `track-line-${mmsi}`;
+    const sourceId = `track-source-${mmsi}`;
+    
+    mapInstance.addSource(sourceId, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [oldCoords, currentPosition]
         }
-      });
+      }
+    });
 
-      mapInstance.addLayer({
-        id: lineId,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': color,
-          'line-width': 2,
-          'line-opacity': 0.4,
-          'line-dasharray': [4, 4]
-        }
-      });
+    mapInstance.addLayer({
+      id: lineId,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': color,
+        'line-width': 3,
+        'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.4, 10, 0.6],
+        'line-dasharray': [4, 4]
+      }
+    });
 
-      active24hMarkers.set(mmsi, {
-        marker,
-        element: el,
-        lineId,
-        sourceId
-      });
-    } else {
-      active24hMarkers.set(mmsi, {
-        marker,
-        element: el
-      });
-    }
+    active24hMarkers.set(mmsi, {
+      marker,
+      element: el,
+      lineId,
+      sourceId
+    });
+
+    // Calculate bounding box
+    const bounds = new maplibregl.LngLatBounds()
+      .extend(oldCoords)
+      .extend(currentPosition);
+
+    // Show restore hint
+    showRestoreHint();
+
+    // Fly to bounding box
+    mapInstance.fitBounds(bounds, {
+      padding: 100,
+      duration: 1200,
+      essential: true,
+      maxZoom: 12
+    });
+
+    // Setup restore handlers
+    setupRestoreHandlers(mmsi);
 
     console.log(`[24H] ✓ 24h marker displayed for MMSI ${mmsi}`);
   }).catch(error => {
@@ -157,7 +191,103 @@ function hide24hAgoMarker(mmsi) {
   }
 
   active24hMarkers.delete(mmsi);
+  
+  // Restore view if this was the last marker
+  if (active24hMarkers.size === 0) {
+    restoreView();
+  }
+  
   console.log(`[24H] Marker removed for MMSI ${mmsi}`);
+}
+
+function restoreView() {
+  if (!savedViewState) return;
+  
+  const mapInstance = window.map;
+  if (!mapInstance) return;
+
+  // Restore vessel opacity
+  Object.values(vesselMarkers).forEach(marker => {
+    if (marker.element) {
+      marker.element.style.opacity = '1';
+    }
+  });
+
+  // Fly back to saved view
+  mapInstance.flyTo({
+    center: savedViewState.center,
+    zoom: savedViewState.zoom,
+    bearing: savedViewState.bearing,
+    pitch: savedViewState.pitch,
+    duration: 1000,
+    essential: true
+  });
+
+  // Hide restore hint
+  hideRestoreHint();
+
+  // Clean up handlers
+  cleanupRestoreHandlers();
+
+  savedViewState = null;
+  console.log('[24H] View restored');
+}
+
+function showRestoreHint() {
+  let hint = document.getElementById('restore-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'restore-hint';
+    hint.innerHTML = `
+      <span>Click map to restore view</span>
+      <button onclick="restoreView(); event.stopPropagation();">×</button>
+    `;
+    document.body.appendChild(hint);
+  }
+  hint.style.display = 'flex';
+}
+
+function hideRestoreHint() {
+  const hint = document.getElementById('restore-hint');
+  if (hint) {
+    hint.style.display = 'none';
+  }
+}
+
+function setupRestoreHandlers(mmsi) {
+  const mapInstance = window.map;
+  if (!mapInstance) return;
+
+  // Clean up old handlers
+  cleanupRestoreHandlers();
+
+  // Map click handler
+  restoreClickHandler = () => {
+    hide24hAgoMarker(mmsi);
+  };
+  mapInstance.once('click', restoreClickHandler);
+
+  // ESC key handler
+  restoreKeyHandler = (e) => {
+    if (e.key === 'Escape') {
+      hide24hAgoMarker(mmsi);
+    }
+  };
+  document.addEventListener('keydown', restoreKeyHandler);
+}
+
+function cleanupRestoreHandlers() {
+  const mapInstance = window.map;
+  
+  if (restoreClickHandler && mapInstance) {
+    mapInstance.off('click', restoreClickHandler);
+    restoreClickHandler = null;
+  }
+  
+  if (restoreKeyHandler) {
+    document.removeEventListener('keydown', restoreKeyHandler);
+    restoreKeyHandler = null;
+  }
 }
 
 function toggle24hAgoMarker(mmsi, currentPosition, color) {
