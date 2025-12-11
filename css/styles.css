@@ -174,7 +174,7 @@ html, body {
 .stats-panel {
   position: fixed;
   right: 0;
-  bottom: 80px;
+  bottom: 120px;
   z-index: 2001;
   background: rgba(5, 8, 18, 0.96);
   color: #eee;
@@ -185,7 +185,7 @@ html, body {
   box-shadow: -2px 2px 10px rgba(0,0,0,0.4);
   border: 1px solid rgba(0, 234, 255, 0.2);
   border-right: none;
-  transition: transform 0.3s ease, opacity 0.2s;
+  transition: all 0.3s ease;
   transform: translateX(0);
 }
 
@@ -200,6 +200,9 @@ html, body {
   user-select: none;
   cursor: pointer;
   outline: none;
+  white-space: nowrap;
+  transition: transform 0.3s ease;
+  transform-origin: left center;
 }
 
 .stats-row {
@@ -250,16 +253,33 @@ html, body {
 }
 
 .stats-panel-collapsed {
-  transform: translateX(calc(100% - 180px));
+  width: 40px;
+  height: 200px;
+  padding: 12px 8px;
+  border-radius: 6px 0 0 6px;
+  bottom: 120px;
   opacity: 0.85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stats-panel-collapsed:hover {
   opacity: 1;
 }
 
-.stats-panel-collapsed #stats-panel-arrow {
+.stats-panel-collapsed .stats-header {
+  transform: rotate(-90deg);
+  margin-bottom: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
   transform: rotate(180deg);
+  display: block;
+  width: max-content;
+}
+
+.stats-panel-collapsed #stats-content {
+  display: none;
 }
 
 .stats-panel #stats-panel-arrow {
@@ -269,4 +289,9 @@ html, body {
   color: #00eaff;
   vertical-align: middle;
   user-select: none;
+}
+
+.stats-panel:not(.stats-panel-collapsed) .stats-header {
+  transform: rotate(0deg);
+  writing-mode: horizontal-tb;
 }
