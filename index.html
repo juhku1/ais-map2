@@ -41,14 +41,24 @@
     .attribution {
       position: fixed;
       bottom: 4px; left: 4px;
-      background: white;
-      padding: 3px 8px;
-      font-size: 11px;
-      color: #222;
-      opacity: 0.88;
-      border-radius: 4px;
+      background: #111;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: #bbb;
+      opacity: 0.93;
+      border-radius: 5px;
       z-index: 2000;
       pointer-events: none;
+      font-weight: 400;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .attribution a {
+      color: #aaa;
+      text-decoration: underline;
+      pointer-events: auto;
+    }
+    .attribution a:visited {
+      color: #888;
     }
     .flag-img {
       width: 24px;
@@ -90,10 +100,8 @@
 <body>
   <div class="logo-header">
     <svg width="480" height="200" viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg">
-
       <!-- Tausta -->
       <rect x="0" y="0" width="480" height="200" fill="none"/>
-
       <!-- LOGO-OSA (pienennetty ja siirretty vasemmalle) -->
       <g transform="translate(20,10) scale(0.3)">
         <!-- Ulompi kompassirengas -->
@@ -149,13 +157,15 @@
             fill="#00eaff"
             font-size="26"
             font-weight="600"
-            letter-spacing="1.5">
+            letter-spacing="1.5"
+            opacity="0.77">
         ANCHOR DRAGGERS
       </text>
       <text x="75" y="55"
             fill="#00eaff"
             font-size="13"
-            letter-spacing="1">
+            letter-spacing="1"
+            opacity="0.77">
         DIY BALTIC CORRIDOR WATCH
       </text>
     </svg>
@@ -164,8 +174,18 @@
   <div class="sky-overlay"></div>
   <div class="ground-vignette"></div>
   <div class="attribution">
-    Data © Fintraffic / Digitraffic (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
-    Map © OpenStreetMap contributors.
+    AIS data © 
+    <a href="https://www.fintraffic.fi/en/fintraffic/digitraffic" target="_blank" rel="noopener">
+      Fintraffic / Digitraffic
+    </a>
+    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
+    Map tiles © <a href="https://carto.com/attribution" target="_blank" rel="noopener">CARTO</a>,
+    data © <a href="https://www.openstreetmap.org/copyright"
+              target="_blank" rel="noopener">OpenStreetMap contributors</a>.
+    UN/LOCODE data © United Nations / 
+    <a href="https://github.com/datasets/un-locode" target="_blank" rel="noopener">datasets/un-locode</a>
+    (ODC PDDL).
+    Flags © <a href="https://flagcdn.com" target="_blank" rel="noopener">Flagpedia / flagcdn.com</a>.
   </div>
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script>
