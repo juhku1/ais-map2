@@ -20,7 +20,7 @@ BBOX = {
 
 # Supabase configuration
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://baeebralrmgccruigyle.supabase.co')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')  # Use new secret key from Supabase dashboard
 
 def get_supabase_client():
     """Initialize Supabase client"""

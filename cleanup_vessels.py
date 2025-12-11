@@ -13,7 +13,7 @@ from shapely.ops import nearest_points
 
 # Supabase configuration
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://baeebralrmgccruigyle.supabase.co')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')  # Use new secret key from Supabase dashboard
 
 def get_supabase_client():
     """Initialize Supabase client"""
@@ -43,26 +43,48 @@ def load_territorial_waters():
     # Convert GeoJSON features to Shapely geometries
     boundaries = []
     for feature in data['features']:
-        if feature['geometry']['type'] in ['Polygon', 'MultiPolygon']:
+        # Support both line (boundaries) and polygon (territorial waters) geometries
+        geom_type = feature['geometry']['type']
+        if geom_type in ['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString']:
             geom = shape(feature['geometry'])
-            country = feature['properties'].get('TERRITORY1', 'Unknown')
+            # Try different property names for country identification
+            country = (feature['properties'].get('TERRITORY1') or 
+                      feature['properties'].get('Country') or 
+                      feature['properties'].get('NAME') or
+                      'Unknown')
             boundaries.append({
                 'geometry': geom,
-                'country': country
+                'country': country,
+                'type': geom_type
             })
     
     print(f"Loaded {len(boundaries)} territorial boundaries")
     return boundaries
 
 def get_vessel_country(lon, lat, boundaries):
-    """Determine which country's territorial waters a vessel is in (if any)"""
+    """
+    Determine which country's territorial waters a vessel is in.
+    For LineString boundaries, uses distance threshold (12 nautical miles ≈ 0.2 degrees)
+    For Polygon boundaries, uses containment check
+    """
     point = Point(lon, lat)
+    PROXIMITY_THRESHOLD = 0.2  # ~12 nautical miles in degrees
     
     for boundary in boundaries:
-        if boundary['geometry'].contains(point):
-            return boundary['country']
+        geom_type = boundary['type']
+        
+        # For polygons, check if point is inside
+        if geom_type in ['Polygon', 'MultiPolygon']:
+            if boundary['geometry'].contains(point):
+                return boundary['country']
+        
+        # For lines (boundary markers), check proximity
+        elif geom_type in ['LineString', 'MultiLineString']:
+            distance = boundary['geometry'].distance(point)
+            if distance < PROXIMITY_THRESHOLD:
+                return boundary['country']
     
-    return None  # In international waters
+    return None  # In international waters or far from boundaries
 
 def analyze_vessel_movements(supabase, boundaries, hours=24):
     """
@@ -132,7 +154,14 @@ def analyze_vessel_movements(supabase, boundaries, hours=24):
     return vessels_to_keep, vessels_to_delete
 
 def delete_vessels(supabase, mmsi_set, hours=24):
-    """Delete all positions for vessels in the given MMSI set from the last 24 hours"""
+    """
+    Delete ONLY the last 24h positions for vessels that didn't cross territorial boundaries.
+    
+    IMPORTANT: This preserves ALL historical data older than 24h!
+    - If a vessel crossed boundaries 2 days ago, that data is kept
+    - Only the most recent 24h is removed if no boundary crossing occurred
+    - This prevents endless accumulation while preserving historical boundary crossings
+    """
     if not mmsi_set:
         print("No vessels to delete")
         return
@@ -151,7 +180,7 @@ def delete_vessels(supabase, mmsi_set, hours=24):
         for i in range(0, len(mmsi_list), batch_size):
             batch = mmsi_list[i:i + batch_size]
             
-            # Delete positions for these MMSIs from last 24h
+            # CRITICAL: .gte() ensures we delete ONLY last 24h, not entire history!
             result = supabase.table('vessel_positions')\
                 .delete()\
                 .in_('mmsi', batch)\
