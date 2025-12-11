@@ -52,17 +52,17 @@ map.on('load', () => {
 async function fetchTerritorialWaters() {
   try {
     // OpenStreetMap Overpass API - maritime boundaries for Baltic Sea
-    // Uses boundary=maritime + border_type=territorial tags
+    // Uses boundary=maritime tags (includes territorial waters, baselines, EEZ, etc.)
     // License: ODbL (Open Database License) - requires attribution and share-alike
     // More accurate and up-to-date than Natural Earth
     
-    // Overpass query for territorial waters in Baltic Sea region
+    // Overpass query for maritime boundaries in Baltic Sea region
     const bbox = '57.0,17.0,67.0,31.0'; // south,west,north,east
     const overpassQuery = `
       [out:json][timeout:25];
       (
-        way["boundary"="maritime"]["border_type"="territorial"](${bbox});
-        relation["boundary"="maritime"]["border_type"="territorial"](${bbox});
+        way["boundary"="maritime"](${bbox});
+        relation["boundary"="maritime"](${bbox});
       );
       out geom;
     `;
