@@ -410,3 +410,125 @@ html, body {
   vertical-align: middle;
   user-select: none;
 }
+
+/* Vessel popup styling */
+.maplibregl-popup-content {
+  background: rgba(15, 15, 20, 0.95);
+  color: #e0e0e0;
+  border: 1px solid rgba(0, 234, 255, 0.3);
+  border-radius: 4px;
+  padding: 0;
+  font-size: 11px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  max-width: 280px;
+}
+
+.maplibregl-popup-close-button {
+  color: #00eaff;
+  font-size: 18px;
+  padding: 4px 8px;
+  opacity: 0.7;
+}
+
+.maplibregl-popup-close-button:hover {
+  background: rgba(0, 234, 255, 0.1);
+  opacity: 1;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: rgba(15, 15, 20, 0.95);
+}
+
+.vessel-popup {
+  padding: 10px;
+}
+
+.popup-header {
+  border-bottom: 1px solid rgba(0, 234, 255, 0.2);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.popup-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00eaff;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.popup-subtitle {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.popup-section {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.popup-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 6px;
+}
+
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+.popup-row .label {
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 45px;
+}
+
+.popup-row .value {
+  color: #e0e0e0;
+  font-size: 11px;
+  text-align: right;
+  flex: 1;
+  font-family: 'Courier New', monospace;
+}
+
+.popup-track-btn {
+  width: 100%;
+  padding: 8px;
+  background: rgba(0, 234, 255, 0.1);
+  border: 1px solid rgba(0, 234, 255, 0.3);
+  border-radius: 3px;
+  color: #00eaff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.popup-track-btn:hover {
+  background: rgba(0, 234, 255, 0.2);
+  border-color: #00eaff;
+  box-shadow: 0 0 8px rgba(0, 234, 255, 0.3);
+}
+
+.popup-track-btn:active {
+  transform: scale(0.98);
+}
+
+.track-icon {
+  font-size: 14px;
+  opacity: 0.8;
+}
