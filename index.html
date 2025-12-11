@@ -105,9 +105,10 @@
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 11px;
-      max-width: 420px;
+      max-width: 340px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.4);
       border: 1px solid rgba(0, 234, 255, 0.2);
+      transition: opacity 0.2s;
     }
     .stats-header {
       font-weight: 600;
@@ -117,6 +118,9 @@
       color: #00eaff;
       margin-bottom: 4px;
       opacity: 0.9;
+      user-select: none;
+      cursor: pointer;
+      outline: none;
     }
     .stats-row {
       margin-bottom: 3px;
@@ -132,7 +136,6 @@
       margin-top: 2px;
       padding-left: 2px;
     }
-    /* Uudet suodatusnapit ja rivitetyt labelit */
     .stats-toggle {
       display: inline-block;
       margin-left: 6px;
@@ -150,9 +153,29 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 98%;
     }
     .stats-filter-label input {
       margin-right: 4px;
+      vertical-align: middle;
+    }
+    .stats-panel-collapsed #stats-content {
+      display: none;
+    }
+    .stats-panel-collapsed {
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .stats-panel-collapsed #stats-panel-arrow {
+      transform: rotate(180deg);
+    }
+    .stats-panel #stats-panel-arrow {
+      margin-left: 8px;
+      font-size: 14px;
+      transition: transform 0.2s;
+      color: #00eaff;
+      vertical-align: middle;
+      user-select: none;
     }
   </style>
 </head>
@@ -213,18 +236,18 @@
       </text>
     </svg>
   </div>
-
   <div id="map"></div>
   <div class="sky-overlay"></div>
   <div class="ground-vignette"></div>
-
-  <div id="stats-panel" class="stats-panel">
-    <div class="stats-header">Live traffic summary</div>
+  <div id="stats-panel" class="stats-panel stats-panel-collapsed">
+    <div id="stats-header" class="stats-header" tabindex="0">
+      Live traffic summary
+      <span id="stats-panel-arrow">&#x25B2;</span>
+    </div>
     <div id="stats-content" class="stats-body">
       Initializing…
     </div>
   </div>
-
   <div class="attribution">
     AIS data © 
     <a href="https://www.fintraffic.fi/en/fintraffic/digitraffic" target="_blank" rel="noopener">
@@ -239,9 +262,9 @@
     (ODC PDDL).
     Flags © <a href="https://flagcdn.com" target="_blank" rel="noopener">Flagpedia / flagcdn.com</a>.
   </div>
-
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script>
+    // --- Utilityt, CSV-lataus, kartan asetukset ja tilastot ---
     const DIGITRAFFIC_USER = "JuhaMatti/AISMapLibreDemo";
     const UNLOCODE_URL = "https://raw.githubusercontent.com/datasets/un-locode/master/data/code-list.csv";
     let mmsiCountry = {};
@@ -281,12 +304,11 @@
       "Estonia": "EE", "Latvia": "LV", "Lithuania": "LT", "Germany (Federal Republic of)": "DE",
       "Netherlands (Kingdom of the)": "NL", "Belgium": "BE",
       "United Kingdom of Great Britain and Northern Ireland": "GB", "Ireland": "IE",
-      "Russian Federation": "RU", "Poland (Republic of)": "PL",
-      "France": "FR", "Spain": "ES", "Portugal": "PT", "Portugal - Madeira": "PT",
-      "Portugal - Azores": "PT", "Malta": "MT", "Greece": "GR", "Italy": "IT", "Iceland": "IS",
-      "Cyprus (Republic of)": "CY", "United Kingdom of Great Britain and Northern Ireland - Gibraltar": "GI"
+      "Russian Federation": "RU", "Poland (Republic of)": "PL", "France": "FR", "Spain": "ES",
+      "Portugal": "PT", "Portugal - Madeira": "PT", "Portugal - Azores": "PT", "Malta": "MT",
+      "Greece": "GR", "Italy": "IT", "Iceland": "IS", "Cyprus (Republic of)": "CY",
+      "United Kingdom of Great Britain and Northern Ireland - Gibraltar": "GI"
     };
-
     function getCountryIso2FromMmsiCountry(countryName) {
       if (!countryName) return "";
       if (countryNameToIso2[countryName]) return countryNameToIso2[countryName];
@@ -296,14 +318,12 @@
       if (countryNameToIso2[firstWord]) return countryNameToIso2[firstWord];
       return "";
     }
-
     function flagImgTag(iso2) {
       if (!iso2) return "";
       return `<img class="flag-img" src="https://flagcdn.com/24x18/${iso2.toLowerCase()}.png" alt="${iso2} flag" loading="lazy">`;
     }
 
     let unlocodeMap = {};
-
     function splitCsvLine(line) {
       const result = [];
       let current = "";
@@ -327,7 +347,6 @@
       result.push(current);
       return result;
     }
-
     function loadUnlocode(callback) {
       fetch(UNLOCODE_URL)
         .then(res => {
@@ -360,7 +379,6 @@
           if (callback) callback();
         });
     }
-
     function normalizeDestinationCode(raw) {
       if (!raw) return null;
       return String(raw).replace(/\s+/g, "").toUpperCase();
@@ -385,43 +403,36 @@
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
-
     function formatKnots(value) {
       if (typeof value !== "number" || !isFinite(value)) return "–";
       return value.toFixed(1) + " kn";
     }
-
     function formatMeters(value) {
       if (typeof value !== "number" || !isFinite(value)) return "–";
       return value.toFixed(1) + " m";
     }
-
     function formatTimestampMs(tsMs) {
       if (typeof tsMs !== "number" || !isFinite(tsMs)) return "–";
       return new Date(tsMs).toLocaleString();
     }
-
     function formatLatLon(lat, lon) {
       if (typeof lat !== "number" || typeof lon !== "number") return "–";
       return lat.toFixed(5) + ", " + lon.toFixed(5);
     }
-
     function safe(value, fallback = "–") {
       return (value === null || value === undefined || value === "") ? fallback : value;
     }
-
     function shipTypeColor(shipType) {
       if (shipType === undefined || shipType === null) return "#888";
-      if (shipType >= 60 && shipType < 70) return "#3a9eea";    // passenger
-      if (shipType >= 70 && shipType < 80) return "#f3c300";    // cargo
-      if (shipType >= 30 && shipType < 40) return "#e84e1b";    // fishing
-      if (shipType >= 80 && shipType < 90) return "#2ecc71";    // tanker
-      if (shipType >= 90) return "#ad00ff";                     // special
-      if (shipType >= 20 && shipType < 30) return "#aaaaaa";    // tug etc
-      if (shipType >= 50 && shipType < 60) return "#1abc9c";    // pilot/SAR
+      if (shipType >= 60 && shipType < 70) return "#3a9eea";
+      if (shipType >= 70 && shipType < 80) return "#f3c300";
+      if (shipType >= 30 && shipType < 40) return "#e84e1b";
+      if (shipType >= 80 && shipType < 90) return "#2ecc71";
+      if (shipType >= 90) return "#ad00ff";
+      if (shipType >= 20 && shipType < 30) return "#aaaaaa";
+      if (shipType >= 50 && shipType < 60) return "#1abc9c";
       return "#888";
     }
-
     function shipTypeName(shipType) {
       if (shipType === undefined || shipType === null) return "Unknown";
       if (shipType >= 20 && shipType < 30) return "Wing-in-ground/Tug/Pusher";
@@ -434,7 +445,6 @@
       if (shipType >= 90) return "Other special";
       return "Other/Unknown";
     }
-
     function vesselSvg(speed, angle, color) {
       const rounded = (typeof speed === "number" && isFinite(speed) && speed > 0)
         ? Math.round(speed)
@@ -468,7 +478,6 @@
       stats.byType = {};
       stats.byDestination = {};
     }
-
     function registerVesselForStats(countryName, typeName, destinationLabel) {
       const cKey = countryName && countryName !== "–" ? countryName : "Unknown";
       const tKey = typeName || "Unknown";
@@ -483,7 +492,6 @@
       }
       return { cKey, tKey };
     }
-
     function vesselPassesFilter(markerData) {
       const cSet = filterState.countries;
       const tSet = filterState.types;
@@ -493,7 +501,6 @@
       if (tSet.size > 0 && !tSet.has(tKey)) return false;
       return true;
     }
-
     function applyFilters() {
       Object.values(vesselMarkers).forEach(md => {
         const visible = vesselPassesFilter(md);
@@ -502,7 +509,6 @@
         }
       });
     }
-
     function wireStatsFilterHandlers() {
       const flagToggle = document.getElementById("toggle-flags");
       if (flagToggle) {
@@ -539,7 +545,6 @@
         });
       });
     }
-
     function updateStatsPanel() {
       const el = document.getElementById("stats-content");
       if (!el) return;
@@ -604,6 +609,7 @@
       wireStatsFilterHandlers();
     }
 
+    // --- MapLibre ---
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
@@ -825,6 +831,50 @@
         loading = false;
       }
     }
+
+    // --- Tilastopaneelin toggle ---
+    function toggleStatsPanel(forceState) {
+      const panel = document.getElementById("stats-panel");
+      const arrow = document.getElementById("stats-panel-arrow");
+      if (!panel) return;
+      let collapsed;
+      if (typeof forceState === "boolean") {
+        collapsed = forceState;
+        panel.classList.toggle("stats-panel-collapsed", collapsed);
+      } else {
+        panel.classList.toggle("stats-panel-collapsed");
+        collapsed = panel.classList.contains("stats-panel-collapsed");
+      }
+      if (arrow) {
+        arrow.innerHTML = collapsed ? "&#x25B2;" : "&#x25BC;";
+      }
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+      const header = document.getElementById("stats-header");
+      if (header) {
+        header.addEventListener("click", function(e) {
+          toggleStatsPanel();
+          e.stopPropagation();
+        });
+        header.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            toggleStatsPanel();
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        });
+      }
+      document.addEventListener("click", function(e) {
+        const panel = document.getElementById("stats-panel");
+        const header = document.getElementById("stats-header");
+        if (!panel || !header) return;
+        if (!panel.contains(e.target)) {
+          if (!panel.classList.contains("stats-panel-collapsed")) {
+            toggleStatsPanel(true);
+          }
+        }
+      });
+    });
 
     map.on('load', () => {
       loadMmsiCountry(() => {
