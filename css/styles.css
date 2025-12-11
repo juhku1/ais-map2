@@ -4,6 +4,7 @@ html, body {
   padding: 0;
   background: #050812;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 3 L11 11 L8 11 L12 21 L13 21 L9 11 L12 11 Z" fill="white" stroke="black" stroke-width="1.5"/></svg>') 3 3, auto;
 }
 
 #map {
@@ -11,6 +12,7 @@ html, body {
   height: 100vh;
   position: relative;
   background: #020818;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 3 L11 11 L8 11 L12 21 L13 21 L9 11 L12 11 Z" fill="white" stroke="black" stroke-width="1.5"/></svg>') 3 3, auto;
 }
 
 .logo-header {
