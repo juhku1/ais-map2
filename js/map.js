@@ -52,13 +52,14 @@ map.on('load', () => {
 async function fetchTerritorialWaters() {
   try {
     // Traficom WFS service for maritime boundaries (aluevesien rajat)
-    // This includes: territorial sea (12 NM), internal waters, EEZ, and national borders at sea
+    // This includes: territorial sea (12 NM), internal waters, and national borders at sea
+    // Using Ahti_Limit_L which contains Finnish territorial/internal water boundaries
     const wfsUrl = 'https://julkinen.traficom.fi/inspirepalvelu/avoin/wfs';
     const params = new URLSearchParams({
       service: 'WFS',
       version: '2.0.0',
       request: 'GetFeature',
-      typeName: 'au:AdministrativeBoundary', // INSPIRE administrative boundaries
+      typeName: 'avoin:Ahti_Limit_L', // Ahti territorial waters boundaries
       outputFormat: 'application/json',
       srsName: 'EPSG:4326'
     });
