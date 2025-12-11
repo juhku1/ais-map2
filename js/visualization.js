@@ -118,7 +118,7 @@ function vesselPassesFilter(markerData) {
   return true;
 }
 
-function applyFilters() {
+export function applyFilters() {
   Object.values(vesselMarkers).forEach(md => {
     const visible = vesselPassesFilter(md);
     if (md.element) {
