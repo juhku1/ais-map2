@@ -95,8 +95,6 @@
         transparent 60%
       );
     }
-
-    /* Tilastopaneeli oikeaan alakulmaan */
     .stats-panel {
       position: fixed;
       right: 8px;
@@ -134,46 +132,49 @@
       margin-top: 2px;
       padding-left: 2px;
     }
+    /* Uudet suodatusnapit ja rivitetyt labelit */
     .stats-toggle {
+      display: inline-block;
       margin-left: 6px;
-      cursor: pointer;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid rgba(0,234,255,0.4);
+      background: rgba(0,234,255,0.05);
       color: #00eaff;
-      text-decoration: underline;
-      font-size: 10px;
-      opacity: 0.85;
+      cursor: pointer;
     }
-    .stats-toggle:hover {
-      opacity: 1;
+    .stats-filter-label {
+      display: block;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stats-filter-label input {
+      margin-right: 4px;
     }
   </style>
 </head>
 <body>
   <div class="logo-header">
     <svg width="480" height="200" viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg">
-      <!-- Tausta -->
       <rect x="0" y="0" width="480" height="200" fill="none"/>
-      <!-- LOGO-OSA (pienennetty ja siirretty vasemmalle) -->
       <g transform="translate(20,10) scale(0.3)">
-        <!-- Ulompi kompassirengas -->
         <circle cx="90" cy="90" r="78" fill="none" stroke="#00eaff" stroke-width="6" opacity="0.8"/>
-        <!-- Sisempi kompassirengas / radar-kehä -->
         <circle cx="90" cy="90" r="55" fill="none" stroke="#00eaff" stroke-width="3" opacity="0.5"/>
-        <!-- Kompassin pääilmansuuntaviivat (N, E, S, W) -->
-        <line x1="90" y1="12"  x2="90" y2="24"  stroke="#00eaff" stroke-width="3" opacity="0.8"/>  <!-- N -->
-        <line x1="156" y1="90" x2="144" y2="90" stroke="#00eaff" stroke-width="3" opacity="0.8"/>  <!-- E -->
-        <line x1="90" y1="156" x2="90" y2="144" stroke="#00eaff" stroke-width="3" opacity="0.8"/>  <!-- S -->
-        <line x1="12" y1="90"  x2="24" y2="90"  stroke="#00eaff" stroke-width="3" opacity="0.8"/>  <!-- W -->
-        <!-- Väli-ilmansuuntaviivat (NE, SE, SW, NW) -->
-        <line x1="133" y1="32" x2="125" y2="40" stroke="#00eaff" stroke-width="1.8" opacity="0.6"/> <!-- NE -->
-        <line x1="148" y1="133" x2="138" y2="125" stroke="#00eaff" stroke-width="1.8" opacity="0.6"/> <!-- SE -->
-        <line x1="32" y1="133" x2="40" y2="125" stroke="#00eaff" stroke-width="1.8" opacity="0.6"/> <!-- SW -->
-        <line x1="48" y1="32"  x2="56" y2="40"  stroke="#00eaff" stroke-width="1.8" opacity="0.6"/> <!-- NW -->
-        <!-- Kompassitekstit -->
+        <line x1="90" y1="12"  x2="90" y2="24"  stroke="#00eaff" stroke-width="3" opacity="0.8"/>
+        <line x1="156" y1="90" x2="144" y2="90" stroke="#00eaff" stroke-width="3" opacity="0.8"/>
+        <line x1="90" y1="156" x2="90" y2="144" stroke="#00eaff" stroke-width="3" opacity="0.8"/>
+        <line x1="12" y1="90"  x2="24" y2="90"  stroke="#00eaff" stroke-width="3" opacity="0.8"/>
+        <line x1="133" y1="32" x2="125" y2="40" stroke="#00eaff" stroke-width="1.8" opacity="0.6"/>
+        <line x1="148" y1="133" x2="138" y2="125" stroke="#00eaff" stroke-width="1.8" opacity="0.6"/>
+        <line x1="32" y1="133" x2="40" y2="125" stroke="#00eaff" stroke-width="1.8" opacity="0.6"/>
+        <line x1="48" y1="32"  x2="56" y2="40"  stroke="#00eaff" stroke-width="1.8" opacity="0.6"/>
         <text x="90" y="20" text-anchor="middle" fill="#00eaff" font-size="12" font-weight="bold">N</text>
         <text x="154" y="94" text-anchor="middle" fill="#00eaff" font-size="12" font-weight="bold">E</text>
         <text x="90" y="160" text-anchor="middle" fill="#00eaff" font-size="12" font-weight="bold">S</text>
         <text x="26" y="94" text-anchor="middle" fill="#00eaff" font-size="12" font-weight="bold">W</text>
-        <!-- Pyörivä radar-keila (animoitu) -->
         <g id="radar-sweep">
           <path d="M90 90 L90 35 A55 55 0 0 1 137 82 Z"
                 fill="#00eaff"
@@ -187,22 +188,14 @@
               repeatCount="indefinite" />
           </path>
         </g>
-        <!-- Pohjoisnuoli -->
         <polygon points="90,18 100,40 80,40" fill="#00eaff" opacity="0.95"/>
-        <!-- Ankkuri -->
-        <!-- varsi -->
         <line x1="90" y1="60" x2="90" y2="120" stroke="#00eaff" stroke-width="5" stroke-linecap="round"/>
-        <!-- rengas -->
         <circle cx="90" cy="50" r="9" fill="none" stroke="#00eaff" stroke-width="4"/>
-        <!-- poikkipuu -->
         <line x1="72" y1="78" x2="108" y2="78" stroke="#00eaff" stroke-width="4" stroke-linecap="round"/>
-        <!-- kaari -->
         <path d="M50 115 Q90 150 130 115" fill="none" stroke="#00eaff" stroke-width="5" stroke-linecap="round"/>
-        <!-- koukut -->
         <path d="M50 115 Q45 130 60 132" stroke="#00eaff" stroke-width="5" fill="none" stroke-linecap="round"/>
         <path d="M130 115 Q135 130 120 132" stroke="#00eaff" stroke-width="5" fill="none" stroke-linecap="round"/>
       </g>
-      <!-- TEKSTI-Osa oikealle isompana -->
       <text x="75" y="40"
             fill="#00eaff"
             font-size="26"
@@ -225,7 +218,6 @@
   <div class="sky-overlay"></div>
   <div class="ground-vignette"></div>
 
-  <!-- Tilastopaneeli pohjalla -->
   <div id="stats-panel" class="stats-panel">
     <div class="stats-header">Live traffic summary</div>
     <div id="stats-content" class="stats-body">
@@ -252,8 +244,6 @@
   <script>
     const DIGITRAFFIC_USER = "JuhaMatti/AISMapLibreDemo";
     const UNLOCODE_URL = "https://raw.githubusercontent.com/datasets/un-locode/master/data/code-list.csv";
-
-    // --- MMSI country CSV ---
     let mmsiCountry = {};
 
     function loadMmsiCountry(callback) {
@@ -273,11 +263,9 @@
             const country = parts[1].trim();
             if (digit && country) mmsiCountry[digit] = country;
           });
-          console.log("MMSI countries loaded:", Object.keys(mmsiCountry).length);
           if (callback) callback();
         })
         .catch(err => {
-          console.error("Failed to load MMSI country data:", err);
           if (callback) callback();
         });
     }
@@ -288,33 +276,15 @@
       return mmsiCountry[prefix] || "";
     }
 
-    // --- Flag lookup ---
     const countryNameToIso2 = {
-      "Finland": "FI",
-      "Sweden": "SE",
-      "Norway": "NO",
-      "Denmark": "DK",
-      "Estonia": "EE",
-      "Latvia": "LV",
-      "Lithuania": "LT",
-      "Germany (Federal Republic of)": "DE",
-      "Netherlands (Kingdom of the)": "NL",
-      "Belgium": "BE",
-      "United Kingdom of Great Britain and Northern Ireland": "GB",
-      "Ireland": "IE",
-      "Russian Federation": "RU",
-      "Poland (Republic of)": "PL",
-      "France": "FR",
-      "Spain": "ES",
-      "Portugal": "PT",
-      "Portugal - Madeira": "PT",
-      "Portugal - Azores": "PT",
-      "Malta": "MT",
-      "Greece": "GR",
-      "Italy": "IT",
-      "Iceland": "IS",
-      "Cyprus (Republic of)": "CY",
-      "United Kingdom of Great Britain and Northern Ireland - Gibraltar": "GI"
+      "Finland": "FI", "Sweden": "SE", "Norway": "NO", "Denmark": "DK",
+      "Estonia": "EE", "Latvia": "LV", "Lithuania": "LT", "Germany (Federal Republic of)": "DE",
+      "Netherlands (Kingdom of the)": "NL", "Belgium": "BE",
+      "United Kingdom of Great Britain and Northern Ireland": "GB", "Ireland": "IE",
+      "Russian Federation": "RU", "Poland (Republic of)": "PL",
+      "France": "FR", "Spain": "ES", "Portugal": "PT", "Portugal - Madeira": "PT",
+      "Portugal - Azores": "PT", "Malta": "MT", "Greece": "GR", "Italy": "IT", "Iceland": "IS",
+      "Cyprus (Republic of)": "CY", "United Kingdom of Great Britain and Northern Ireland - Gibraltar": "GI"
     };
 
     function getCountryIso2FromMmsiCountry(countryName) {
@@ -332,7 +302,6 @@
       return `<img class="flag-img" src="https://flagcdn.com/24x18/${iso2.toLowerCase()}.png" alt="${iso2} flag" loading="lazy">`;
     }
 
-    // --- UN/LOCODE ---
     let unlocodeMap = {};
 
     function splitCsvLine(line) {
@@ -373,10 +342,7 @@
           const idxCountry = header.indexOf("Country");
           const idxLocation = header.indexOf("Location");
           const idxName = header.indexOf("Name");
-          if (idxCountry === -1 || idxLocation === -1 || idxName === -1) {
-            console.warn("UN/LOCODE header unexpected:", header);
-            return;
-          }
+          if (idxCountry === -1 || idxLocation === -1 || idxName === -1) return;
           for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
@@ -388,11 +354,9 @@
             const code = (country + loc).replace(/\s+/g, "").toUpperCase();
             unlocodeMap[code] = { name: name, country: country };
           }
-          console.log("UNLOCODE entries loaded:", Object.keys(unlocodeMap).length);
           if (callback) callback();
         })
         .catch(err => {
-          console.error("Failed to load UN/LOCODE data:", err);
           if (callback) callback();
         });
     }
@@ -401,7 +365,6 @@
       if (!raw) return null;
       return String(raw).replace(/\s+/g, "").toUpperCase();
     }
-
     function decodeDestination(raw) {
       const norm = normalizeDestinationCode(raw);
       if (!norm) return null;
@@ -410,7 +373,6 @@
       return `${entry.name}, ${entry.country}`;
     }
 
-    // --- Utility ---
     function haversine(lat1, lon1, lat2, lon2) {
       const R = 6371000;
       const toRad = d => d * Math.PI / 180;
@@ -448,7 +410,6 @@
       return (value === null || value === undefined || value === "") ? fallback : value;
     }
 
-    // --- Ship type ---
     function shipTypeColor(shipType) {
       if (shipType === undefined || shipType === null) return "#888";
       if (shipType >= 60 && shipType < 70) return "#3a9eea";    // passenger
@@ -487,20 +448,19 @@
       `;
     }
 
-    // --- Tilastot ---
+    // --- Tilastot ja filtterit ---
     const stats = {
       total: 0,
       byCountry: {},
       byType: {},
       byDestination: {}
     };
-
-    // Näkymän tila: top 5 vai all
-    const statsView = {
-      showAllFlags: false,
-      showAllTypes: false,
-      showAllDest: false
+    const filterState = {
+      countries: new Set(),
+      types: new Set()
     };
+    let showAllFlags = false;
+    let showAllTypes = false;
 
     function resetStats() {
       stats.total = 0;
@@ -510,124 +470,160 @@
     }
 
     function registerVesselForStats(countryName, typeName, destinationLabel) {
-      stats.total += 1;
-
       const cKey = countryName && countryName !== "–" ? countryName : "Unknown";
       const tKey = typeName || "Unknown";
-
+      stats.total += 1;
       if (!stats.byCountry[cKey]) stats.byCountry[cKey] = 0;
       stats.byCountry[cKey] += 1;
-
       if (!stats.byType[tKey]) stats.byType[tKey] = 0;
       stats.byType[tKey] += 1;
-
       if (destinationLabel) {
         if (!stats.byDestination[destinationLabel]) stats.byDestination[destinationLabel] = 0;
         stats.byDestination[destinationLabel] += 1;
       }
+      return { cKey, tKey };
+    }
+
+    function vesselPassesFilter(markerData) {
+      const cSet = filterState.countries;
+      const tSet = filterState.types;
+      const cKey = markerData.countryKey || "Unknown";
+      const tKey = markerData.typeKey || "Unknown";
+      if (cSet.size > 0 && !cSet.has(cKey)) return false;
+      if (tSet.size > 0 && !tSet.has(tKey)) return false;
+      return true;
+    }
+
+    function applyFilters() {
+      Object.values(vesselMarkers).forEach(md => {
+        const visible = vesselPassesFilter(md);
+        if (md.element) {
+          md.element.style.display = visible ? "" : "none";
+        }
+      });
+    }
+
+    function wireStatsFilterHandlers() {
+      const flagToggle = document.getElementById("toggle-flags");
+      if (flagToggle) {
+        flagToggle.onclick = () => {
+          showAllFlags = !showAllFlags;
+          updateStatsPanel();
+          applyFilters();
+        };
+      }
+      const typeToggle = document.getElementById("toggle-types");
+      if (typeToggle) {
+        typeToggle.onclick = () => {
+          showAllTypes = !showAllTypes;
+          updateStatsPanel();
+          applyFilters();
+        };
+      }
+      document.querySelectorAll(".flag-filter").forEach(cb => {
+        cb.addEventListener("change", e => {
+          const key = e.target.getAttribute("data-key");
+          if (!key) return;
+          if (e.target.checked) filterState.countries.add(key);
+          else filterState.countries.delete(key);
+          applyFilters();
+        });
+      });
+      document.querySelectorAll(".type-filter").forEach(cb => {
+        cb.addEventListener("change", e => {
+          const key = e.target.getAttribute("data-key");
+          if (!key) return;
+          if (e.target.checked) filterState.types.add(key);
+          else filterState.types.delete(key);
+          applyFilters();
+        });
+      });
     }
 
     function updateStatsPanel() {
       const el = document.getElementById("stats-content");
       if (!el) return;
-
       if (stats.total === 0) {
         el.innerHTML = "No vessels on the map in the last fetch.";
         return;
       }
-
-      const countrySorted = Object.entries(stats.byCountry)
+      const allCountryEntries = Object.entries(stats.byCountry)
         .sort((a, b) => b[1] - a[1]);
-      const typeSorted = Object.entries(stats.byType)
+      const allTypeEntries = Object.entries(stats.byType)
         .sort((a, b) => b[1] - a[1]);
-      const destSorted = Object.entries(stats.byDestination)
-        .sort((a, b) => b[1] - a[1]);
+      const destinationEntries = Object.entries(stats.byDestination)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
 
-      const countryEntries = statsView.showAllFlags
-        ? countrySorted
-        : countrySorted.slice(0, 5);
-
-      const typeEntries = statsView.showAllTypes
-        ? typeSorted
-        : typeSorted.slice(0, 5);
-
-      const destinationEntries = statsView.showAllDest
-        ? destSorted
-        : destSorted.slice(0, 5);
+      const countryEntries = showAllFlags ? allCountryEntries : allCountryEntries.slice(0, 5);
+      const typeEntries = showAllTypes ? allTypeEntries : allTypeEntries.slice(0, 5);
 
       let html = "";
       html += `<div class="stats-row"><strong>Vessels on map:</strong> ${stats.total}</div>`;
 
-      if (countrySorted.length) {
-        const toggleLabel = statsView.showAllFlags ? "show top 5" : "show all";
-        html += `<div class="stats-row"><strong>By flag:</strong><span class="stats-toggle" data-kind="flag">${toggleLabel}</span></div>`;
-        const countryText = countryEntries
-          .map(([c, n]) => `${c} (${n})`)
-          .join("<br>");
-        html += `<div class="stats-small">${countryText}</div>`;
-      }
+      html += `<div class="stats-row">
+                 <strong>By flag:</strong>
+                 <button id="toggle-flags" class="stats-toggle" type="button">
+                   ${showAllFlags ? "Top 5" : "All"}
+                 </button>
+               </div>`;
+      html += `<div class="stats-small" id="stats-flags-list">`;
+      countryEntries.forEach(([c, n]) => {
+        const checked = filterState.countries.has(c) ? "checked" : "";
+        html += `<label class="stats-filter-label">
+                   <input type="checkbox" class="flag-filter" data-key="${c}" ${checked}>
+                   ${c} (${n})
+                 </label>`;
+      });
+      html += `</div>`;
 
-      if (typeSorted.length) {
-        const toggleLabel = statsView.showAllTypes ? "show top 5" : "show all";
-        html += `<div class="stats-row"><strong>By ship type:</strong><span class="stats-toggle" data-kind="type">${toggleLabel}</span></div>`;
-        const typeText = typeEntries
-          .map(([t, n]) => `${t} (${n})`)
-          .join("<br>");
-        html += `<div class="stats-small">${typeText}</div>`;
-      }
+      html += `<div class="stats-row" style="margin-top:4px;">
+                 <strong>By ship type:</strong>
+                 <button id="toggle-types" class="stats-toggle" type="button">
+                   ${showAllTypes ? "Top 5" : "All"}
+                 </button>
+               </div>`;
+      html += `<div class="stats-small" id="stats-types-list">`;
+      typeEntries.forEach(([t, n]) => {
+        const checked = filterState.types.has(t) ? "checked" : "";
+        html += `<label class="stats-filter-label">
+                   <input type="checkbox" class="type-filter" data-key="${t}" ${checked}>
+                   ${t} (${n})
+                 </label>`;
+      });
+      html += `</div>`;
 
-      if (destSorted.length) {
-        const toggleLabel = statsView.showAllDest ? "show top 5" : "show all";
-        html += `<div class="stats-row"><strong>Top destinations:</strong><span class="stats-toggle" data-kind="dest">${toggleLabel}</span></div>`;
+      if (destinationEntries.length) {
         const destText = destinationEntries
           .map(([d, n]) => `${d} (${n})`)
           .join("<br>");
+        html += `<div class="stats-row" style="margin-top:4px;"><strong>Top destinations:</strong></div>`;
         html += `<div class="stats-small">${destText}</div>`;
       }
-
       el.innerHTML = html;
-
-      // Kytketään toggle-linkit joka päivityksen jälkeen
-      document.querySelectorAll("#stats-panel .stats-toggle").forEach(t => {
-        t.addEventListener("click", () => {
-          const kind = t.getAttribute("data-kind");
-          if (kind === "flag") {
-            statsView.showAllFlags = !statsView.showAllFlags;
-          } else if (kind === "type") {
-            statsView.showAllTypes = !statsView.showAllTypes;
-          } else if (kind === "dest") {
-            statsView.showAllDest = !statsView.showAllDest;
-          }
-          updateStatsPanel();
-        });
-      });
+      wireStatsFilterHandlers();
     }
 
-    // --- MapLibre (pseudo-3D, mutta aina pohjoinen ylös) ---
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       center: [22.0, 60.2],
       zoom: 6,
       pitch: 60,
-      bearing: 0,             // AINA NORTH-UP
+      bearing: 0,
       attributionControl: false
     });
-
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
-
-    // Estetään kartan pyörittäminen (dragRotate + näppäin/elekierto)
     map.dragRotate.disable();
     if (map.touchZoomRotate && map.touchZoomRotate.disableRotation) {
       map.touchZoomRotate.disableRotation();
     }
 
-    // --- AIS state ---
     let loading = false;
     const vesselState = {};
     const vesselMetadataByMmsi = {};
     let metadataLoaded = false;
-    const vesselMarkers = {}; // mmsi -> {marker, element, lastAngle, lastSpeed, color}
+    const vesselMarkers = {};
     let firstCenter = true;
 
     async function fetchVesselMetadata() {
@@ -639,17 +635,13 @@
           "Accept": "application/json"
         }
       });
-      if (!res.ok) {
-        console.warn("Vessel metadata fetch failed:", res.status, res.statusText);
-        return;
-      }
+      if (!res.ok) return;
       const list = await res.json();
       for (const v of list) {
         if (!v || !v.mmsi) continue;
         vesselMetadataByMmsi[v.mmsi] = v;
       }
       metadataLoaded = true;
-      console.log("Vessel metadata count:", list.length);
     }
 
     async function loadAis() {
@@ -669,13 +661,11 @@
         });
         if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
         const data = await res.json();
-        console.log("AIS features:", data.features ? data.features.length : 0);
 
         resetStats();
 
         const latestByMmsi = {};
 
-        // Lasketaan liikepohjainen nopeus ja talletetaan uusin feature per MMSI
         data.features.forEach(feature => {
           const props = feature.properties || {};
           const mmsi = props.mmsi || feature.mmsi;
@@ -705,12 +695,9 @@
               lastCalcSpeedKnots: calcSpeedKnots
             };
           }
-
-          // Päivitetään "uusin feature" tälle MMSI:lle
           latestByMmsi[mmsi] = feature;
         });
 
-        // Luo/päivitä markkerit ja kerää tilastot (vain yksi per MMSI)
         let anyPosition = null;
 
         Object.values(latestByMmsi).forEach(feature => {
@@ -739,7 +726,6 @@
           const shipType = meta.shipType;
           const color = shipTypeColor(shipType);
 
-          // NORTH-UP: visualAngle = heading suoraan pohjoisesta
           const visualAngle = angle;
           const svgIcon = vesselSvg(speed, visualAngle, color);
           const name = meta.name || props.name || "Unknown vessel";
@@ -756,17 +742,14 @@
             destLabel = decoded || meta.destination;
           }
 
-          // Rekisteröidään tilastoihin
-          registerVesselForStats(regCountry, typeName, destLabel);
+          const { cKey, tKey } = registerVesselForStats(regCountry, typeName, destLabel);
 
           let popupHtml = "";
           popupHtml += `<strong>${safe(name)}</strong><br>`;
           popupHtml += `<strong>MMSI:</strong> ${safe(mmsi)}<br>`;
           popupHtml += `<strong>Flag state:</strong> ${regCountry} ${regFlag}<br>`;
-
           if (meta.imo) popupHtml += `<strong>IMO:</strong> ${meta.imo}<br>`;
           if (meta.callSign) popupHtml += `<strong>Callsign:</strong> ${meta.callSign}<br>`;
-
           if (meta.destination) {
             if (destLabel && destLabel !== meta.destination) {
               popupHtml += `<strong>Destination:</strong> ${meta.destination} (${destLabel})<br>`;
@@ -774,14 +757,12 @@
               popupHtml += `<strong>Destination:</strong> ${meta.destination}<br>`;
             }
           }
-
           if (typeof meta.draught === "number") {
             popupHtml += `<strong>Draft:</strong> ${formatMeters(meta.draught / 10)}<br>`;
           }
           if (shipType !== undefined) {
             popupHtml += `<strong>Ship type:</strong> ${typeName} (${shipType})<br>`;
           }
-
           popupHtml += `<hr style="margin:4px 0;">`;
           popupHtml += `<strong>Reported SOG:</strong> ${formatKnots(sog)}<br>`;
           popupHtml += `<strong>Calculated speed:</strong> ${formatKnots(calcSpeedKnots)}<br>`;
@@ -808,7 +789,15 @@
               .setLngLat([lon, lat])
               .setPopup(popup)
               .addTo(map);
-            vesselMarkers[mmsi] = { marker, element: el, lastAngle: angle, lastSpeed: speed, color: color };
+            vesselMarkers[mmsi] = {
+              marker,
+              element: el,
+              lastAngle: angle,
+              lastSpeed: speed,
+              color: color,
+              countryKey: cKey,
+              typeKey: tKey
+            };
           } else {
             markerData.element.innerHTML = svgIcon;
             markerData.marker.setLngLat([lon, lat]);
@@ -818,25 +807,25 @@
             markerData.lastAngle = angle;
             markerData.lastSpeed = speed;
             markerData.color = color;
+            markerData.countryKey = cKey;
+            markerData.typeKey = tKey;
           }
         });
 
-        // Päivitä tilastopaneeli kaiken käsittelyn jälkeen
         updateStatsPanel();
+        applyFilters();
 
-        // Ensimmäisellä kerralla zoomataan lähemmäs johonkin alukseen (jos löytyy)
         if (firstCenter && anyPosition) {
           map.flyTo({ center: anyPosition, zoom: 8, essential: true, bearing: 0 });
           firstCenter = false;
         }
       } catch (err) {
-        console.error("AIS data fetch failed:", err);
+        // ignore
       } finally {
         loading = false;
       }
     }
 
-    // Käynnistetään kun kartta on ladattu
     map.on('load', () => {
       loadMmsiCountry(() => {
         loadUnlocode(() => {
@@ -845,7 +834,6 @@
         });
       });
     });
-    // HUOM: ei enää rotate/pitch-kuuntelijoita, koska kartta ei pyöri
   </script>
 </body>
 </html>
