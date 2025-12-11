@@ -671,13 +671,7 @@ html, body {
 
 .buoy-marker {
   filter: drop-shadow(0 0 4px rgba(0, 234, 255, 0.6));
-  --wave-amplitude: 0px;
-  --wave-duration: 5s;
-}
-
-/* Wave motion animation - uses real FMI wave data (amplitude from wave height, duration from wave period) */
-.buoy-marker.wave-animate {
-  animation: wave-bob var(--wave-duration) ease-in-out infinite;
+  --wave-amplitude: 3px;
 }
 
 @keyframes wave-bob {

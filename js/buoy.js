@@ -216,23 +216,17 @@ function updateBuoyMarkers(data, map) {
       markerData.popup.setHTML(popupHtml);
     }
     
-    // Apply wave animation based on real wave data
-    const el = markerData ? markerData.element : buoyMarkers[key].element;
-    const waveHeight = buoy.observations.WaveHs; // meters
-    const wavePeriod = buoy.observations.WTP;    // seconds
-    
-    if (waveHeight !== null && wavePeriod !== null && waveHeight > 0) {
-      // Animation amplitude: scale wave height to pixels (1m = 3px movement)
-      const amplitude = waveHeight * 3;
-      // Animation duration: use actual wave period
-      const duration = wavePeriod;
-      
-      el.style.setProperty('--wave-amplitude', `${amplitude}px`);
-      el.style.setProperty('--wave-duration', `${duration}s`);
-      el.classList.add('wave-animate');
-    } else {
-      // No wave data - remove animation
-      el.classList.remove('wave-animate');
+    // Apply wave animation if wave data is available
+    const obs = buoy.observations;
+    if (markerData && obs.WaveHs !== null && obs.WTP !== null) {
+      const amplitude = Math.min(obs.WaveHs * 3, 10); // Wave height in meters -> pixels (max 10px)
+      const duration = Math.max(obs.WTP, 2); // Wave period in seconds (min 2s)
+      markerData.element.style.animation = `wave-bob ${duration}s ease-in-out infinite`;
+      markerData.element.style.setProperty('--wave-amplitude', `${amplitude}px`);
+    } else if (markerData) {
+      // No wave data - gentle default animation
+      markerData.element.style.animation = 'wave-bob 3s ease-in-out infinite';
+      markerData.element.style.setProperty('--wave-amplitude', '3px');
     }
   });
   
