@@ -124,7 +124,8 @@ function applyFilters() {
 function wireStatsFilterHandlers() {
   // Tab switching
   document.querySelectorAll(".stats-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
+    tab.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent header click handler from closing panel
       activeTab = tab.getAttribute("data-tab");
       updateStatsPanel();
     });
