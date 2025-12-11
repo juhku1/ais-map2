@@ -10,7 +10,7 @@
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  center: [24.9, 59.5],  // Gulf of Finland, view from Estonia towards Helsinki
+  center: [24.9, 60.0],  // Gulf of Finland, centered more north towards Helsinki
   zoom: 8,
   pitch: 60,
   bearing: 340,  // Northwest direction towards Helsinki
