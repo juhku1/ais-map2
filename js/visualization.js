@@ -270,4 +270,36 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     }
   });
+
+  // License modal handlers
+  const modal = document.getElementById("license-modal");
+  const moreLink = document.getElementById("license-more");
+  const closeBtn = document.querySelector(".license-close");
+
+  if (moreLink) {
+    moreLink.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (modal) modal.style.display = "flex";
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function() {
+      if (modal) modal.style.display = "none";
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener("click", function(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  }
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && modal && modal.style.display === "flex") {
+      modal.style.display = "none";
+    }
+  });
 });
