@@ -366,9 +366,14 @@ async function loadAis(map) {
       const navStatText = (props.navStat !== undefined) ? getNavStatText(props.navStat) : null;
       const navStatColor = (props.navStat !== undefined) ? getNavStatColor(props.navStat) : "#888";
 
-      const etaText = (meta.eta !== undefined && meta.eta !== 0)
-        ? new Date(meta.eta).toLocaleString("en-GB", { timeZone: "UTC", timeZoneName: "short" })
-        : null;
+      // Format ETA with date and time on separate lines
+      let etaFormatted = null;
+      if (meta.eta !== undefined && meta.eta !== 0) {
+        const etaDate = new Date(meta.eta);
+        const datePart = etaDate.toLocaleDateString("en-GB", { timeZone: "UTC" });
+        const timePart = etaDate.toLocaleTimeString("en-GB", { timeZone: "UTC", hour: '2-digit', minute: '2-digit', timeZoneName: "short" });
+        etaFormatted = `${datePart}<br>${timePart}`;
+      }
 
       let destLabel = "";
       if (meta.destination) {
@@ -383,6 +388,15 @@ async function loadAis(map) {
 
       const { cKey, tKey } = registerVesselForStats(regCountry, typeName, destLabel);
       const rotText = (props.rot !== undefined && props.rot !== -128) ? formatROT(props.rot) : null;
+      
+      // Format update timestamp with date and time on separate lines
+      let updateFormatted = null;
+      if (typeof props.timestampExternal === "number") {
+        const updateDate = new Date(props.timestampExternal);
+        const datePart = updateDate.toLocaleDateString("en-GB", { timeZone: "UTC" });
+        const timePart = updateDate.toLocaleTimeString("en-GB", { timeZone: "UTC", hour: '2-digit', minute: '2-digit', timeZoneName: "short" });
+        updateFormatted = `${datePart}<br>${timePart}`;
+      }
 
       // Build popup HTML
       let popupHtml = `<div class="vessel-popup">`;
@@ -396,31 +410,32 @@ async function loadAis(map) {
       
       if (navStatText) {
         popupHtml += `<div class="popup-row">`;
+        popupHtml += `<span class="label">Status:</span>`;
         popupHtml += `<span class="value"><span class="status-dot" style="background:${navStatColor}"></span>${navStatText}</span>`;
         popupHtml += `</div>`;
       }
       
       if (meta.destination) {
         const dest = (destLabel && destLabel !== meta.destination) ? `${destLabel}` : meta.destination;
-        popupHtml += `<div class="popup-row"><span class="value">${dest}</span></div>`;
+        popupHtml += `<div class="popup-row"><span class="label">Destination:</span><span class="value">${dest}</span></div>`;
       }
       
-      if (etaText) {
-        popupHtml += `<div class="popup-row"><span class="value">${etaText}</span></div>`;
+      if (etaFormatted) {
+        popupHtml += `<div class="popup-row"><span class="label">ETA:</span><span class="value">${etaFormatted}</span></div>`;
       }
       
-      popupHtml += `<div class="popup-row"><span class="value">${formatKnots(sog)}</span></div>`;
+      popupHtml += `<div class="popup-row"><span class="label">Speed:</span><span class="value">${formatKnots(sog)}</span></div>`;
       
       if (props.cog !== undefined && props.cog !== 360) {
-        popupHtml += `<div class="popup-row"><span class="value">${props.cog}°</span></div>`;
+        popupHtml += `<div class="popup-row"><span class="label">Course:</span><span class="value">${props.cog}°</span></div>`;
       }
       
       if (typeof meta.draught === "number" && meta.draught > 0) {
-        popupHtml += `<div class="popup-row"><span class="value">${formatMeters(meta.draught / 10)}</span></div>`;
+        popupHtml += `<div class="popup-row"><span class="label">Draft:</span><span class="value">${formatMeters(meta.draught / 10)}</span></div>`;
       }
       
-      if (typeof props.timestampExternal === "number") {
-        popupHtml += `<div class="popup-row"><span class="value">${formatTimestampMs(props.timestampExternal)}</span></div>`;
+      if (updateFormatted) {
+        popupHtml += `<div class="popup-row"><span class="label">Update:</span><span class="value">${updateFormatted}</span></div>`;
       }
       
       popupHtml += `<div class="popup-section">`;
@@ -433,31 +448,17 @@ async function loadAis(map) {
         popupHtml += `<div class="popup-row"><span class="label">Call Sign:</span><span class="value">${meta.callSign}</span></div>`;
       }
       
+      if (rotText) {
+        popupHtml += `<div class="popup-row"><span class="label">Rate of Turn:</span><span class="value">${rotText}</span></div>`;
+      }
+      
+      popupHtml += `<div class="popup-row"><span class="value">${formatLatLon(lat, lon)}</span></div>`;
+      
       if (meta.imo) {
         popupHtml += `<div class="popup-row"><span class="label">IMO:</span><span class="value">${meta.imo}</span></div>`;
       }
       
       popupHtml += `<div class="popup-row"><span class="label">MMSI:</span><span class="value">${mmsi}</span></div>`;
-      
-      if (rotText) {
-        popupHtml += `<div class="popup-row"><span class="label">Rate of Turn:</span><span class="value">${rotText}</span></div>`;
-      }
-      
-      if (props.posAcc !== undefined) {
-        const accuracy = props.posAcc ? "High" : "Low";
-        popupHtml += `<div class="popup-row"><span class="label">Position Accuracy:</span><span class="value">${accuracy}</span></div>`;
-      }
-      
-      if (meta.posType !== undefined && meta.posType !== 0) {
-        popupHtml += `<div class="popup-row"><span class="label">Position Type:</span><span class="value">${getPosTypeText(meta.posType)}</span></div>`;
-      }
-      
-      if (props.raim !== undefined) {
-        const raim = props.raim ? "On" : "Off";
-        popupHtml += `<div class="popup-row"><span class="label">RAIM:</span><span class="value">${raim}</span></div>`;
-      }
-      
-      popupHtml += `<div class="popup-row"><span class="label">Position:</span><span class="value">${formatLatLon(lat, lon)}</span></div>`;
       
       popupHtml += `</div>`;
       popupHtml += `</div>`;
