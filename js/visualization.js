@@ -71,14 +71,14 @@ const stats = {
   byDestination: {}
 };
 
-function resetStats() {
+export function resetStats() {
   stats.total = 0;
   stats.byCountry = {};
   stats.byType = {};
   stats.byDestination = {};
 }
 
-function registerVesselForStats(countryName, typeName, destinationLabel) {
+export function registerVesselForStats(countryName, typeName, destinationLabel) {
   const cKey = countryName && countryName !== "–" ? countryName : "Unknown";
   const tKey = typeName || "Unknown";
   stats.total += 1;
@@ -171,7 +171,7 @@ function wireStatsFilterHandlers() {
 // Statistics Panel UI
 // ============================================================================
 
-function updateStatsPanel() {
+export function updateStatsPanel() {
   const el = document.getElementById("stats-content");
   if (!el) return;
   if (stats.total === 0) {
