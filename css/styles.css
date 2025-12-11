@@ -477,6 +477,12 @@ html, body {
   margin-bottom: 6px;
 }
 
+.popup-scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .popup-row {
   display: flex;
   justify-content: space-between;

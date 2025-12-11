@@ -147,25 +147,18 @@ async function loadAis() {
       // Build popup HTML
       let popupHtml = `<div class="vessel-popup">`;
       
-      // Header with name and type
+      // Header with name and ship info
       popupHtml += `<div class="popup-header">`;
       popupHtml += `<div class="popup-title">${safe(name)}</div>`;
-      popupHtml += `<div class="popup-subtitle">${typeName}</div>`;
+      popupHtml += `<div class="popup-subtitle">${typeName}, ${regCountry}, ${regFlag}</div>`;
       popupHtml += `</div>`;
       
-      // Primary info section
-      popupHtml += `<div class="popup-section">`;
-      
-      // Flag with image
-      popupHtml += `<div class="popup-row popup-row-flag">`;
-      popupHtml += `<span class="label">Flag:</span>`;
-      popupHtml += `<span class="value">${regCountry} ${regFlag}</span>`;
-      popupHtml += `</div>`;
+      // Primary info section - scrollable
+      popupHtml += `<div class="popup-section popup-scrollable">`;
       
       // Navigation status with color indicator
       if (navStatText) {
         popupHtml += `<div class="popup-row">`;
-        popupHtml += `<span class="label">Status:</span>`;
         popupHtml += `<span class="value"><span class="status-dot" style="background:${navStatColor}"></span>${navStatText}</span>`;
         popupHtml += `</div>`;
       }
@@ -173,75 +166,70 @@ async function loadAis() {
       // Destination
       if (meta.destination) {
         const dest = (destLabel && destLabel !== meta.destination) ? `${destLabel}` : meta.destination;
-        popupHtml += `<div class="popup-row"><span class="label">Dest:</span><span class="value">${dest}</span></div>`;
+        popupHtml += `<div class="popup-row"><span class="value">${dest}</span></div>`;
       }
       
       // ETA
       if (etaText) {
-        popupHtml += `<div class="popup-row"><span class="label">ETA:</span><span class="value">${etaText}</span></div>`;
+        popupHtml += `<div class="popup-row"><span class="value">${etaText}</span></div>`;
       }
       
-      popupHtml += `</div>`;
+      // Speed
+      popupHtml += `<div class="popup-row"><span class="value">${formatKnots(sog)}</span></div>`;
       
-      // Navigation data section
-      popupHtml += `<div class="popup-section">`;
-      popupHtml += `<div class="popup-row"><span class="label">SOG:</span><span class="value">${formatKnots(sog)}</span></div>`;
+      // Course
       if (props.cog !== undefined && props.cog !== 360) {
-        popupHtml += `<div class="popup-row"><span class="label">COG:</span><span class="value">${props.cog}°</span></div>`;
+        popupHtml += `<div class="popup-row"><span class="value">${props.cog}°</span></div>`;
       }
-      if (typeof meta.draught === "number" && meta.draught > 0) {
-        popupHtml += `<div class="popup-row"><span class="label">Draft:</span><span class="value">${formatMeters(meta.draught / 10)}</span></div>`;
-      }
-      if (typeof props.timestampExternal === "number") {
-        popupHtml += `<div class="popup-row"><span class="label">Update:</span><span class="value">${formatTimestampMs(props.timestampExternal)}</span></div>`;
-      }
-      popupHtml += `</div>`;
       
-      // Additional details (collapsible)
-      let moreDetails = [];
+      // Draft
+      if (typeof meta.draught === "number" && meta.draught > 0) {
+        popupHtml += `<div class="popup-row"><span class="value">${formatMeters(meta.draught / 10)}</span></div>`;
+      }
+      
+      // Update time (no label)
+      if (typeof props.timestampExternal === "number") {
+        popupHtml += `<div class="popup-row"><span class="value">${formatTimestampMs(props.timestampExternal)}</span></div>`;
+      }
+      
+      // Additional details section
+      popupHtml += `<div class="popup-section">`;
       
       if (props.heading !== undefined && props.heading !== 511) {
-        moreDetails.push(`<div class="popup-row"><span class="label">Heading:</span><span class="value">${props.heading}°</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">Heading:</span><span class="value">${props.heading}°</span></div>`;
       }
       
       if (meta.callSign) {
-        moreDetails.push(`<div class="popup-row"><span class="label">Call:</span><span class="value">${meta.callSign}</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">Call Sign:</span><span class="value">${meta.callSign}</span></div>`;
       }
       
       if (meta.imo) {
-        moreDetails.push(`<div class="popup-row"><span class="label">IMO:</span><span class="value">${meta.imo}</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">IMO:</span><span class="value">${meta.imo}</span></div>`;
       }
       
-      moreDetails.push(`<div class="popup-row"><span class="label">MMSI:</span><span class="value">${mmsi}</span></div>`);
+      popupHtml += `<div class="popup-row"><span class="label">MMSI:</span><span class="value">${mmsi}</span></div>`;
       
       if (rotText) {
-        moreDetails.push(`<div class="popup-row"><span class="label">ROT:</span><span class="value">${rotText}</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">Rate of Turn:</span><span class="value">${rotText}</span></div>`;
       }
       
       if (props.posAcc !== undefined) {
         const accuracy = props.posAcc ? "High" : "Low";
-        moreDetails.push(`<div class="popup-row"><span class="label">Accuracy:</span><span class="value">${accuracy}</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">Position Accuracy:</span><span class="value">${accuracy}</span></div>`;
       }
       
       if (meta.posType !== undefined && meta.posType !== 0) {
-        moreDetails.push(`<div class="popup-row"><span class="label">Pos type:</span><span class="value">${getPosTypeText(meta.posType)}</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">Position Type:</span><span class="value">${getPosTypeText(meta.posType)}</span></div>`;
       }
       
       if (props.raim !== undefined) {
         const raim = props.raim ? "On" : "Off";
-        moreDetails.push(`<div class="popup-row"><span class="label">RAIM:</span><span class="value">${raim}</span></div>`);
+        popupHtml += `<div class="popup-row"><span class="label">RAIM:</span><span class="value">${raim}</span></div>`;
       }
       
-      moreDetails.push(`<div class="popup-row"><span class="label">Position:</span><span class="value">${formatLatLon(lat, lon)}</span></div>`);
+      popupHtml += `<div class="popup-row"><span class="label">Position:</span><span class="value">${formatLatLon(lat, lon)}</span></div>`;
       
-      if (moreDetails.length > 0) {
-        popupHtml += `<details class="popup-details">`;
-        popupHtml += `<summary class="popup-details-toggle">More details...</summary>`;
-        popupHtml += `<div class="popup-section popup-details-content">`;
-        popupHtml += moreDetails.join('');
-        popupHtml += `</div>`;
-        popupHtml += `</details>`;
-      }
+      popupHtml += `</div>`;
       
       popupHtml += `</div>`;
 
@@ -307,15 +295,15 @@ function createBuoyMarker(buoy) {
   el.innerHTML = `
     <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
       <!-- Antenna/pole -->
-      <line x1="16" y1="8" x2="16" y2="1" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+      <line x1="16" y1="8" x2="16" y2="1" stroke="#33" stroke-width="2" stroke-linecap="round"/>
       <circle cx="16" cy="0.5" r="1.5" fill="#ff6b00"/>
       
       <!-- Buoy body (half sphere) -->
-      <ellipse cx="16" cy="16" rx="12" ry="8" fill="#ffcc00" stroke="#cc9900" stroke-width="1.5"/>
-      <ellipse cx="16" cy="15" rx="12" ry="6" fill="#ffe666"/>
+      <ellipse cx="16" cy="16" rx="12" ry="6" fill="#ffcc00" stroke="#cc9900" stroke-width="1.5"/>
+      <ellipse cx="16" cy="15" rx="12" ry="5" fill="#ffe666"/>
       
       <!-- Shading for 3D effect -->
-      <ellipse cx="16" cy="14" rx="8" ry="4" fill="#fff" opacity="0.3"/>
+      <ellipse cx="16" cy="14" rx="8" ry="3" fill="#fff" opacity="0.3"/>
     </svg>
   `;
   el.style.cursor = 'pointer';
