@@ -203,6 +203,18 @@ html, body {
   white-space: nowrap;
   transition: transform 0.3s ease;
   transform-origin: left center;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);
+    opacity: 0.9;
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(0, 234, 255, 0.9), 0 0 25px rgba(0, 234, 255, 0.6);
+    opacity: 1;
+  }
 }
 
 .stats-row {
