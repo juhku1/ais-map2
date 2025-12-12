@@ -119,6 +119,7 @@ function vesselPassesFilter(markerData) {
 }
 
 export function applyFilters() {
+  console.log("applyFilters() called");
   Object.values(vesselMarkers).forEach(md => {
     const visible = vesselPassesFilter(md);
     if (md.element) {
@@ -128,19 +129,28 @@ export function applyFilters() {
   
   // Show/hide clear filter button
   const clearBtn = document.getElementById("clear-filter");
+  console.log("Clear button element:", clearBtn);
   const hasActiveFilters = filterState.countries.size > 0 || 
                            filterState.types.size > 0 || 
                            filterState.destinations.size > 0;
+  console.log("Has active filters:", hasActiveFilters, "Sizes:", {
+    countries: filterState.countries.size,
+    types: filterState.types.size,
+    destinations: filterState.destinations.size
+  });
   if (clearBtn) {
     clearBtn.style.display = hasActiveFilters ? "inline-flex" : "none";
-    console.log("Clear filter button:", hasActiveFilters ? "visible" : "hidden", 
-                "Filters:", filterState.countries.size, filterState.types.size, filterState.destinations.size);
+    console.log("Clear filter button display set to:", clearBtn.style.display);
+  } else {
+    console.error("Clear filter button not found in DOM!");
   }
 }
 
 function wireStatsFilterHandlers() {
+  console.log("wireStatsFilterHandlers() called");
   // Tab switching - use event delegation on the container that exists
   const tabsContainer = document.querySelector(".stats-tabs");
+  console.log("Tabs container found:", !!tabsContainer);
   if (tabsContainer) {
     // Remove old listener if exists
     const oldListener = tabsContainer._tabClickListener;
@@ -163,41 +173,62 @@ function wireStatsFilterHandlers() {
 
   // Filter checkboxes - use event delegation
   const statsContent = document.getElementById("stats-content");
+  console.log("Stats content found:", !!statsContent);
   if (statsContent) {
     // Remove old listener if exists
     const oldListener = statsContent._filterChangeListener;
     if (oldListener) {
       statsContent.removeEventListener("change", oldListener);
+      console.log("Removed old filter change listener");
     }
     
     // Create new listener that handles all filter types
     const newListener = (e) => {
       const target = e.target;
+      console.log("Change event detected on:", target.className, target.getAttribute("data-key"));
       
       // Check if it's a flag filter
       if (target.classList.contains("flag-filter")) {
         const key = target.getAttribute("data-key");
+        console.log("Flag filter clicked:", key, "checked:", target.checked);
         if (!key) return;
         if (target.checked) filterState.countries.add(key);
         else filterState.countries.delete(key);
+        console.log("Filter state after flag change:", {
+          countries: Array.from(filterState.countries),
+          types: Array.from(filterState.types),
+          destinations: Array.from(filterState.destinations)
+        });
         applyFilters();
       }
       
       // Check if it's a type filter
       else if (target.classList.contains("type-filter")) {
         const key = target.getAttribute("data-key");
+        console.log("Type filter clicked:", key, "checked:", target.checked);
         if (!key) return;
         if (target.checked) filterState.types.add(key);
         else filterState.types.delete(key);
+        console.log("Filter state after type change:", {
+          countries: Array.from(filterState.countries),
+          types: Array.from(filterState.types),
+          destinations: Array.from(filterState.destinations)
+        });
         applyFilters();
       }
       
       // Check if it's a destination filter
       else if (target.classList.contains("dest-filter")) {
         const key = target.getAttribute("data-key");
+        console.log("Destination filter clicked:", key, "checked:", target.checked);
         if (!key) return;
         if (target.checked) filterState.destinations.add(key);
         else filterState.destinations.delete(key);
+        console.log("Filter state after destination change:", {
+          countries: Array.from(filterState.countries),
+          types: Array.from(filterState.types),
+          destinations: Array.from(filterState.destinations)
+        });
         applyFilters();
       }
     };
