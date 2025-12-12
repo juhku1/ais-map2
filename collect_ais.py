@@ -9,6 +9,7 @@ import requests
 from datetime import datetime, timezone
 import os
 from pathlib import Path
+from territory import find_territorial_country
 
 # Baltic Sea bounding box (same as map bounds)
 BBOX = {
@@ -115,6 +116,11 @@ def save_to_database(vessels, vessel_metadata, timestamp, collection_time_ms):
             
             # Get metadata if available
             meta = vessel_metadata.get(mmsi, {})
+            # Determine territorial country (if any)
+            try:
+                territorial_country = find_territorial_country(coords[0], coords[1])
+            except Exception:
+                territorial_country = None
             
             vessel_data.append({
                 'timestamp': timestamp_str,
@@ -130,7 +136,8 @@ def save_to_database(vessels, vessel_metadata, timestamp, collection_time_ms):
                 'destination': meta.get('destination'),
                 'eta': meta.get('eta'),
                 'draught': meta.get('draught'),
-                'pos_acc': props.get('posAcc')
+                'pos_acc': props.get('posAcc'),
+                'territorial_country': territorial_country
             })
         
         # Batch insert vessels (Supabase has 1000 row limit per request)
@@ -165,7 +172,11 @@ def export_latest_json(vessels, vessel_metadata, timestamp):
         coords = feature['geometry']['coordinates']
         mmsi = props.get('mmsi')
         meta = vessel_metadata.get(mmsi, {})
-        
+        try:
+            territorial_country = find_territorial_country(coords[0], coords[1])
+        except Exception:
+            territorial_country = None
+
         vessel_list.append({
             'mmsi': mmsi,
             'name': meta.get('name'),
@@ -175,7 +186,8 @@ def export_latest_json(vessels, vessel_metadata, timestamp):
             'cog': props.get('cog'),
             'heading': props.get('heading'),
             'ship_type': meta.get('ship_type'),
-            'destination': meta.get('destination')
+            'destination': meta.get('destination'),
+            'territorial_country': territorial_country
         })
     
     output = {
