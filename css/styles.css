@@ -282,6 +282,9 @@ html, body {
   transition: all 0.2s ease;
   line-height: 1;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .clear-filter-btn:hover {

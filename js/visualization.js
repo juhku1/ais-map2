@@ -132,7 +132,7 @@ export function applyFilters() {
                            filterState.types.size > 0 || 
                            filterState.destinations.size > 0;
   if (clearBtn) {
-    clearBtn.style.display = hasActiveFilters ? "block" : "none";
+    clearBtn.style.display = hasActiveFilters ? "inline-flex" : "none";
     console.log("Clear filter button:", hasActiveFilters ? "visible" : "hidden", 
                 "Filters:", filterState.countries.size, filterState.types.size, filterState.destinations.size);
   }
