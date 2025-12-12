@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#050812"/>
+  <circle cx="256" cy="256" r="221" fill="none" stroke="#00eaff" stroke-width="16" opacity="0.8"/>
+  <circle cx="256" cy="256" r="156" fill="none" stroke="#00eaff" stroke-width="8" opacity="0.5"/>
+  <line x1="256" y1="35" x2="256" y2="68" stroke="#00eaff" stroke-width="8" opacity="0.8"/>
+  <line x1="444" y1="256" x2="411" y2="256" stroke="#00eaff" stroke-width="8" opacity="0.8"/>
+  <line x1="256" y1="444" x2="256" y2="411" stroke="#00eaff" stroke-width="8" opacity="0.8"/>
+  <line x1="35" y1="256" x2="68" y2="256" stroke="#00eaff" stroke-width="8" opacity="0.8"/>
+  <text x="256" y="58" text-anchor="middle" fill="#00eaff" font-size="34" font-weight="bold">N</text>
+  <text x="438" y="268" text-anchor="middle" fill="#00eaff" font-size="34" font-weight="bold">E</text>
+  <text x="256" y="454" text-anchor="middle" fill="#00eaff" font-size="34" font-weight="bold">S</text>
+  <text x="74" y="268" text-anchor="middle" fill="#00eaff" font-size="34" font-weight="bold">W</text>
+  <polygon points="256,51 283,115 229,115" fill="#00eaff" opacity="0.95"/>
+  <line x1="256" y1="171" x2="256" y2="341" stroke="#00eaff" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="256" cy="142" r="26" fill="none" stroke="#00eaff" stroke-width="11"/>
+  <line x1="205" y1="222" x2="307" y2="222" stroke="#00eaff" stroke-width="11" stroke-linecap="round"/>
+  <path d="M142 326 Q256 427 370 326" fill="none" stroke="#00eaff" stroke-width="14" stroke-linecap="round"/>
+  <path d="M142 326 Q128 371 171 376" stroke="#00eaff" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M370 326 Q384 371 341 376" stroke="#00eaff" stroke-width="14" fill="none" stroke-linecap="round"/>
+</svg>
