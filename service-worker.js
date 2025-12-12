@@ -1,19 +1,19 @@
 const CACHE_NAME = 'anchor-draggers-v1.29';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/js/map.js',
-  '/js/data.js',
-  '/js/buoy.js',
-  '/js/vessel.js',
-  '/js/utils.js',
-  '/js/visualization.js',
-  '/baltic_maritime_boundaries.geojson',
-  '/helcom_territorial.geojson',
-  '/territorial_labels.geojson',
-  '/mmsi_countries.csv'
+  './',
+  './index.html',
+  './css/styles.css',
+  './js/app.js',
+  './js/map.js',
+  './js/data.js',
+  './js/buoy.js',
+  './js/vessel.js',
+  './js/utils.js',
+  './js/visualization.js',
+  './baltic_maritime_boundaries.geojson',
+  './helcom_territorial.geojson',
+  './territorial_labels.geojson',
+  './mmsi_countries.csv'
 ];
 
 // Install event - cache resources

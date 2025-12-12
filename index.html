@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Anchor Draggers"/>
-  <link rel="manifest" href="manifest.json"/>
+  <link rel="manifest" href="./manifest.json"/>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"/>
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="icon" href="data:,">
@@ -110,7 +110,7 @@
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('./service-worker.js')
           .then(reg => console.log('Service Worker registered:', reg.scope))
           .catch(err => console.log('Service Worker registration failed:', err));
       });
