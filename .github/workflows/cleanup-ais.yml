@@ -25,7 +25,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install requests supabase shapely
+          pip install supabase
       
       - name: Run cleanup script
         env:
