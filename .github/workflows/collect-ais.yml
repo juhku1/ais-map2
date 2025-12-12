@@ -25,7 +25,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install requests supabase
+          pip install -r requirements.txt
       
       - name: Run AIS data collection
         env:

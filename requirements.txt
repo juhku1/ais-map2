@@ -1,5 +1,6 @@
+requests
+supabase
 shapely
 pycountry
 python-dateutil
 psycopg2-binary
-
