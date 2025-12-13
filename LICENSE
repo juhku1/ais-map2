@@ -1,0 +1,49 @@
+MIT License
+
+Copyright (c) 2025 juhku1
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+THIRD-PARTY DATA SOURCES AND LICENSES:
+
+This software uses the following third-party data sources, each with their own licenses:
+
+- AIS Data: © Fintraffic/Digitraffic, CC BY 4.0
+  https://creativecommons.org/licenses/by/4.0/
+
+- Map Tiles: © CARTO
+  Data © OpenStreetMap contributors, ODbL
+  https://www.openstreetmap.org/copyright
+
+- Territorial Waters Data: © European Environment Agency
+  Maritime Boundaries: © HELCOM, EEA, OpenStreetMap, Swedish Maritime Administration
+  https://metadata.helcom.fi/geonetwork/srv/eng/catalog.search#/metadata/8a393266-519d-4eaa-a94b-b67f9f589744
+
+- Map Library: MapLibre GL JS, BSD-3-Clause
+  https://maplibre.org
+
+- UN/LOCODE Data: © United Nations, ODC PDDL
+  https://github.com/datasets/un-locode
+
+- Flag Images: © Flagpedia.net via flagcdn.com
+  Sources: Wikipedia Commons
+
+All third-party data sources must be attributed according to their respective licenses.
